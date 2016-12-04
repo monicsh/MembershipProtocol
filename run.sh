@@ -7,6 +7,11 @@
 #* 
 #***********************
 #!/bin/sh
+
+echo "masked this file until monika is ready to submit grade"
+
+exit 0
+
 rm -rf grade-dir # Make sure grade-dir is clean before starting
 rm -f dbg.*.log
 
