@@ -160,10 +160,11 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
  *
  * DESCRIPTION: Wind up this node and clean up state
  */
-int MP1Node::finishUpThisNode(){
+int MP1Node::finishUpThisNode() {
    /*
     * Your code goes here
     */
+    return 0;
 }
 
 /**
@@ -248,6 +249,8 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
         memberNode->inGroup = true;
         
     }
+    
+    return true;
 }
 
 /**
