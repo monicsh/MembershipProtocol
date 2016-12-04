@@ -146,6 +146,7 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
 
         // send JOINREQ message to introducer member
         emulNet->ENsend(&memberNode->addr, joinaddr, (char *)msg, msgsize);
+        std::cout << "\nDEBUG: ENSend from: " << memberNode->addr.getAddress() << ", to: " << joinaddr->getAddress() << "; msg type: " << msg->msgType << " ;heartbeat: " << memberNode->heartbeat << std::endl;
 
         free(msg);
     }
@@ -218,6 +219,35 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
 	/*
 	 * Your code goes here
 	 */
+    Member* member = (Member*)env;
+    
+    
+    MessageHdr* msg = (MessageHdr*)data;
+    data += sizeof(MessageHdr);
+    Address* address = (Address*)data;
+    data += 7;
+    long heartbeat = (long)(*data);
+
+    std::cout << "msgType: " << msg->msgType
+    << " ; address: " << address->getAddress()
+    << " ; heartbeat: " << heartbeat
+    << "\n";
+    
+    // add in your member list
+    if (msg->msgType == JOINREQ)
+    {
+        //      MemberListEntry(int id, short port, long heartbeat, long timestamp);
+        
+        //MemberListEntry newEntry = MemberListEntry(id, port, hb, );
+        //member->memberList.push_back(MemberListEntry(payload->addr.addr[0-4], payload->addr.addr[4-6], payload->heartbeat, ));
+    }
+    
+    if (msg->msgType == JOINREP)
+    {
+        // turn on member-> inGroup
+        memberNode->inGroup = true;
+        
+    }
 }
 
 /**
