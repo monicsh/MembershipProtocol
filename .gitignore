@@ -28,4 +28,7 @@
 *.out
 *.app
 *.log
+
+# xcode related
+MembershipProtocol.xcodeproj/project.xcworkspace/xcuserdata/msharma.xcuserdatad/UserInterfaceState.xcuserstate
 .DS_Store
