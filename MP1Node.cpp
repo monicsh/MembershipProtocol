@@ -221,8 +221,7 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
 	 * Your code goes here
 	 */
     Member* member = (Member*)env;
-    
-    
+
     MessageHdr* msg = (MessageHdr*)data;
     data += sizeof(MessageHdr);
     Address* address = (Address*)data;
