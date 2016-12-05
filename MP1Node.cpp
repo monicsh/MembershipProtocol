@@ -133,7 +133,6 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
     else {
         size_t msgsize = sizeof(MessageHdr) + sizeof(joinaddr->addr) + sizeof(long) + 1;
         msg = (MessageHdr *) malloc(msgsize * sizeof(char));
-
         // create JOINREQ message: format of data is {struct Address myaddr}
         msg->msgType = JOINREQ;
         memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
@@ -211,43 +210,113 @@ void MP1Node::checkMessages() {
     return;
 }
 
+
+/** FUNCTION NAME :
+ *
+ *
+ */
+void MP1Node::sendMsgBack(Address* toNode, MsgTypes msgType) {
+    size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->addr) + sizeof(long) + 1;
+    MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
+
+    // create JOINREP message: format of data is {struct Address myaddr}
+    msg->msgType = msgType;
+    memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
+    memcpy((char *)(msg+1) + 1 + sizeof(memberNode->addr.addr), &memberNode->heartbeat, sizeof(long));
+
+    // send JOINREP message to new member
+    emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, msgsize);
+    free(msg);
+}
+
+/** FUNCTION NAME :
+ *
+ *
+ */
+void MP1Node::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType) {
+
+    size_t msgsize = sizeof(MessageHdr) + (sizeof(toNode->addr) + 1) + sizeof(long) +  sizeof(entry->getid()) + sizeof(entry->getport());
+    MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
+
+    //create memeberlistentry package
+    msg->msgType = msgType;
+    //memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
+
+    memcpy((char *)(msg+1), (char *)(entry->getid()),sizeof(int));
+    memcpy((char *)(msg+1) + sizeof(entry->getid()), (char *)(entry->getport()),sizeof(short));
+    memcpy((char *)(msg+1) + sizeof(entry->getid()) + sizeof(entry->getport()), (char *)(entry->getheartbeat()),sizeof(long));
+
+    //memcpy((char *)(msg) + 1 + sizeof(&memberNode->addr.addr), entry->getheartbeat(), sizeof(long));
+
+    // send NEWMEMBER message
+    emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, msgsize);
+    free(msg);
+
+}
+
+
 /**
  * FUNCTION NAME: recvCallBack
  *
  * DESCRIPTION: Message handler for different message types
  */
 bool MP1Node::recvCallBack(void *env, char *data, int size ) {
-	/*
-	 * Your code goes here
-	 */
-    Member* member = (Member*)env;
 
+    Member* member = (Member*)env;
     MessageHdr* msg = (MessageHdr*)data;
     data += sizeof(MessageHdr);
     Address* address = (Address*)data;
     data += 7;
     long heartbeat = (long)(*data);
 
+    // Extract id and port from Address
+    int addId = atoi(address->getAddress().substr(0,address->getAddress().find(":")).c_str());
+    short addPort = atoi(address->getAddress().substr(address->getAddress().find(":")+1).c_str());
+
     std::cout << "msgType: " << msg->msgType
     << " ; address: " << address->getAddress()
     << " ; heartbeat: " << heartbeat
     << "\n";
+
     
     // add in your member list
     if (msg->msgType == JOINREQ)
     {
-        //      MemberListEntry(int id, short port, long heartbeat, long timestamp);
-        
-        //MemberListEntry newEntry = MemberListEntry(id, port, hb, );
-        //member->memberList.push_back(MemberListEntry(payload->addr.addr[0-4], payload->addr.addr[4-6], payload->heartbeat, ));
+        MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+
+        // 1. acknoledge this new node with JOINREP message
+        sendMsgBack(address, JOINREP);
+
+        // 2. send new message to all other nodes from memberlist that new node has joined (NEW_NODE_JOINED)
+        for (std::vector<MemberListEntry>::iterator it = member->memberList.begin(); it != member->memberList.end(); ++it){
+            std::cout<< "member "<< it->getid() << endl;
+
+        }
+        // 3. add this node to yout memmeberlist
+        member->memberList.push_back(newEntry);
+
+
+
     }
-    
-    if (msg->msgType == JOINREP)
+    else if (msg->msgType == JOINREP)
     {
         // turn on member-> inGroup
         memberNode->inGroup = true;
-        
+        memberNode->inited = true;
+
+
     }
+    else if (msg->msgType == NEWMEMBER)
+    {
+        // 1. update your own memberlist with new node info
+        //MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+    }
+
+    if (this->memberNode->addr.getAddress() == address->getAddress())
+    {
+        // update your own location in memberlist
+    }
+
     
     return true;
 }

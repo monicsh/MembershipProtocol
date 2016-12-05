@@ -31,6 +31,8 @@
 enum MsgTypes{
     JOINREQ,
     JOINREP,
+    NEWMEMBER,
+    LEAVEGROUP,
     DUMMYLASTMSGTYPE
 };
 
@@ -69,6 +71,8 @@ public:
 	int finishUpThisNode();
 	void nodeLoop();
 	void checkMessages();
+    void sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType);
+    void sendMsgBack(Address* toNode, MsgTypes msgType );
 	bool recvCallBack(void *env, char *data, int size);
 	void nodeLoopOps();
 	int isNullAddress(Address *addr);
@@ -76,6 +80,7 @@ public:
 	void initMemberListTable(Member *memberNode);
 	void printAddress(Address *addr);
 	virtual ~MP1Node();
+
 };
 
 #endif /* _MP1NODE_H_ */
