@@ -229,28 +229,45 @@ void MP1Node::sendMsgBack(Address* toNode, MsgTypes msgType) {
     free(msg);
 }
 
-/** FUNCTION NAME :
+/** FUNCTION NAME : sendMemberListEntry
  *
  *
  */
 void MP1Node::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType) {
-
-    size_t msgsize = sizeof(MessageHdr) + (sizeof(toNode->addr) + 1) + sizeof(long) +  sizeof(entry->getid()) + sizeof(entry->getport());
+    size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
     MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 
-    //create memeberlistentry package
+    // create NEWMEMBER message
+    string newMemberAddressString = to_string(entry->getid()) + ":" + to_string(entry->getport());
+    Address newMemberAddress = Address(newMemberAddressString);
+    long newMemberHeartbeat = entry->getheartbeat();
+
     msg->msgType = msgType;
+    memcpy((char *)(msg+1), (char *)(newMemberAddress.addr), sizeof(newMemberAddress.addr));
+    memcpy((char *)(msg+1)+1 + sizeof(newMemberAddress.addr), &newMemberHeartbeat ,sizeof(long));
+
+    emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, msgsize);
+    free(msg);
+
+
+
+    //create memeberlistentry package
+    //memcpy((char *)(msg+1), (char *)(&mle), sizeof(mle));
+
+
+
     //memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
 
-    memcpy((char *)(msg+1), (char *)(entry->getid()),sizeof(int));
-    memcpy((char *)(msg+1) + sizeof(entry->getid()), (char *)(entry->getport()),sizeof(short));
-    memcpy((char *)(msg+1) + sizeof(entry->getid()) + sizeof(entry->getport()), (char *)(entry->getheartbeat()),sizeof(long));
+    //memcpy((char *)(msg+1), (char *)(entry->getid()),sizeof(int));
+    //memcpy((char *)(msg+1) + sizeof(entry->getid()), (char *)(entry->getport()),sizeof(short));
+    //memcpy((char *)(msg+1) + sizeof(entry->getid()) + sizeof(entry->getport()), (char *)(entry->getheartbeat()),sizeof(long));
 
     //memcpy((char *)(msg) + 1 + sizeof(&memberNode->addr.addr), entry->getheartbeat(), sizeof(long));
 
     // send NEWMEMBER message
-    emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, msgsize);
-    free(msg);
+    //emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, msgsize);
+
+    //free(msg);
 
 }
 
@@ -287,15 +304,16 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
         // 1. acknoledge this new node with JOINREP message
         sendMsgBack(address, JOINREP);
 
-        // 2. send new message to all other nodes from memberlist that new node has joined (NEW_NODE_JOINED)
+        // 2. send info about new join member to all other memberss (NEWMEMBER)
         for (std::vector<MemberListEntry>::iterator it = member->memberList.begin(); it != member->memberList.end(); ++it){
-            std::cout<< "member "<< it->getid() << endl;
-
+            //std::cout<< "Member::  id: "<< it->getid()<<"port: "<<it->getport() <<"heartbeat: "<<it->getheartbeat() << endl;
+            string address = to_string(it->getid()) + ":" + to_string(it->getport());
+            Address toNode = Address(address);
+            std::cout<<"toNode : "<<toNode.getAddress();
+            sendMemberListEntry(&newEntry, &toNode, NEWMEMBER);
         }
         // 3. add this node to yout memmeberlist
         member->memberList.push_back(newEntry);
-
-
 
     }
     else if (msg->msgType == JOINREP)
@@ -308,8 +326,10 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
     }
     else if (msg->msgType == NEWMEMBER)
     {
-        // 1. update your own memberlist with new node info
-        //MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+        std::cout<<"new member is: "<< address->getAddress()
+        <<"I am: " <<memberNode->addr.getAddress()<<endl;
+
+
     }
 
     if (this->memberNode->addr.getAddress() == address->getAddress())
