@@ -131,6 +131,7 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
         memberNode->inGroup = true;
     }
     else {
+        //memberNode->heartbeat = 99;
         size_t msgsize = sizeof(MessageHdr) + sizeof(joinaddr->addr) + sizeof(long) + 1;
         msg = (MessageHdr *) malloc(msgsize * sizeof(char));
         // create JOINREQ message: format of data is {struct Address myaddr}
@@ -271,6 +272,28 @@ void MP1Node::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTy
 
 }
 
+/**
+ *
+ */
+void MP1Node::updateHeartbeat(int id, short port, long heartbeat){
+    bool found = false;
+    for(std::vector<MemberListEntry>::iterator it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
+        if (it->getid() == id and it->getport() == port){
+            if (it->getheartbeat() < heartbeat)
+                it->setheartbeat(heartbeat);
+                it->settimestamp(par->getcurrtime());
+            found = true;
+            break;
+        }
+    }
+
+    // new entry
+    if (!found){
+        MemberListEntry newEntry = MemberListEntry(id, port, heartbeat, par->getcurrtime());
+        memberNode->memberList.push_back(newEntry);
+    }
+    return;
+}
 
 /**
  * FUNCTION NAME: recvCallBack
@@ -297,8 +320,7 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
 
     
     // add in your member list
-    if (msg->msgType == JOINREQ)
-    {
+    if (msg->msgType == JOINREQ){
         MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
 
         // 1. acknoledge this new node with JOINREP message
@@ -314,21 +336,22 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
         }
         // 3. add this node to yout memmeberlist
         member->memberList.push_back(newEntry);
-
     }
-    else if (msg->msgType == JOINREP)
-    {
-        // turn on member-> inGroup
+    // handle JOINREP
+    else if (msg->msgType == JOINREP){
         memberNode->inGroup = true;
         memberNode->inited = true;
-
-
     }
-    else if (msg->msgType == NEWMEMBER)
-    {
+    // handle NEWMEMBER
+    else if (msg->msgType == NEWMEMBER){
         std::cout<<"new member is: "<< address->getAddress()
         <<"I am: " <<memberNode->addr.getAddress()<<endl;
-
+    }
+    //handle REGULAR messages
+    else if (msg->msgType == REGULAR){
+        //update memberList for the member if the incoming heartbeat > heartbeat
+        //std::cout<<"REGULAR message: from: "<<addId<<endl;
+        updateHeartbeat(addId, addPort,heartbeat);
 
     }
 
@@ -341,6 +364,41 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
     return true;
 }
 
+
+/** 
+ * FUNCTION NAME: createRegularMessage
+ *
+ *
+ */
+
+MessageHdr* MP1Node::createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize){
+    //size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
+    MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
+
+    // create REGULAR message
+    string mleAddressString = to_string(entry->getid()) + ":" + to_string(entry->getport());
+    Address mleAddress = Address(mleAddressString);
+    long mleHeartbeat = entry->getheartbeat();
+
+    msg->msgType = msgType;
+    memcpy((char *)(msg+1), (char *)(mleAddress.addr), sizeof(mleAddress.addr));
+    memcpy((char *)(msg+1)+1 + sizeof(mleAddress.addr), &mleHeartbeat ,sizeof(long));
+
+    return msg;
+}
+
+/**
+ * FUNCTION NAME: disseminateRegularMessage
+ *
+ *
+
+
+void MP1Node::disseminateRegularMessage(char* msg, int msgSize){
+    // implemet
+}
+
+ */
+
 /**
  * FUNCTION NAME: nodeLoopOps
  *
@@ -349,10 +407,33 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
  * 				Propagate your membership list
  */
 void MP1Node::nodeLoopOps() {
+    /*//1. check all membership enties in MEmberList whether && 2. if the entry got timeout-- delete it
+    for(std::vector<MemberListEntry>::iterator it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
+        if ((par->getcurrtime() - it->gettimestamp()) > memberNode->pingCounter){
+            cout<<"time: "<<par->getcurrtime()<<"ts: "<<it->gettimestamp()<<"id: "<<it->getid()<<"port: "<<it->getport()<<endl;
+            memberNode->memberList.erase(it);
+         }
+    }
+     */
+    ;
+    //3. Propogate Member List as REGULAR message
+    MemberListEntry* entry;
+    size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
+    std::vector<MemberListEntry>::iterator begin = memberNode->memberList.begin();
+    for(std::vector<MemberListEntry>::iterator it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
+        entry = &*it;
+        MessageHdr* msg = createRegularMessage(entry, REGULAR, msgsize);
 
-	/*
-	 * Your code goes here
-	 */
+        //disseminateRegularMessage(MessageHdr* msg, msgsize );
+        for(std::vector<MemberListEntry>::iterator toNodeIt = memberNode->memberList.begin(); toNodeIt != memberNode->memberList.end(); toNodeIt++){
+            string toNodeAddressString = to_string(toNodeIt->getid()) + ":" + to_string(toNodeIt->getport());
+            Address toNodeAddress = Address(toNodeAddressString);
+
+
+            emulNet->ENsend(&memberNode->addr, &toNodeAddress, (char *)msg, msgsize);
+            //free(msg);
+        }
+    }
 
     return;
 }

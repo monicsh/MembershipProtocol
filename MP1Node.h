@@ -33,6 +33,7 @@ enum MsgTypes{
     JOINREP,
     NEWMEMBER,
     LEAVEGROUP,
+    REGULAR,
     DUMMYLASTMSGTYPE
 };
 
@@ -73,7 +74,9 @@ public:
 	void checkMessages();
     void sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType);
     void sendMsgBack(Address* toNode, MsgTypes msgType );
+    void updateHeartbeat(int id, short port, long heartbeat);
 	bool recvCallBack(void *env, char *data, int size);
+    MessageHdr* createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize);
 	void nodeLoopOps();
 	int isNullAddress(Address *addr);
 	Address getJoinAddress();
