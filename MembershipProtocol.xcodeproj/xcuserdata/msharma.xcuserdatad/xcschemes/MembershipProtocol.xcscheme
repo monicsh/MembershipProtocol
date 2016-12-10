@@ -65,6 +65,14 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "testcases/singlefailure.conf"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/msgdropsinglefailure.conf"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/multifailure.conf"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

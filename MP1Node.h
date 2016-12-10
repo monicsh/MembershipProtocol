@@ -15,6 +15,7 @@
 #include "EmulNet.h"
 #include "Queue.h"
 
+
 /**
  * Macros
  */
@@ -77,6 +78,7 @@ public:
     void updateHeartbeat(int id, short port, long heartbeat);
 	bool recvCallBack(void *env, char *data, int size);
     MessageHdr* createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize);
+    void propogateRegularMessage();
 	void nodeLoopOps();
 	int isNullAddress(Address *addr);
 	Address getJoinAddress();
