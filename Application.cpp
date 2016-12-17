@@ -15,7 +15,7 @@ void handler(int sig) {
 
 	// print out all the frames to stderr
 	fprintf(stderr, "Error: signal %d:\n", sig);
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
+	backtrace_symbols_fd(array, (int)size, STDERR_FILENO);
 	exit(1);
 }
 
@@ -90,10 +90,10 @@ Application::~Application() {
 int Application::run()
 {
 	int i;
-	int timeWhenAllNodesHaveJoined = 0;
+	//int timeWhenAllNodesHaveJoined = 0;
 	// boolean indicating if all nodes have joined
-	bool allNodesJoined = false;
-	srand(time(NULL));
+	//bool allNodesJoined = false;
+	srand((unsigned int)time(NULL));
 
 	// As time runs along
 	for( par->globaltime = 0; par->globaltime < TOTAL_RUNNING_TIME; ++par->globaltime ) {

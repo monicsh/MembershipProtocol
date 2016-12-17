@@ -77,6 +77,7 @@ public:
     void sendMsgBack(Address* toNode, MsgTypes msgType );
     void updateHeartbeat(int id, short port, long heartbeat);
 	bool recvCallBack(void *env, char *data, int size);
+    bool deleteLeaveMemberEntry(int addId, short addPort);
     MessageHdr* createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize);
     void propogateRegularMessage();
 	void nodeLoopOps();
@@ -84,7 +85,15 @@ public:
 	Address getJoinAddress();
 	void initMemberListTable(Member *memberNode);
 	void printAddress(Address *addr);
+    void printMemberList();
+    void checkFailure();
 	virtual ~MP1Node();
+    void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
+    
+    static std::string AddressToString(MemberListEntry& member)
+    {
+        return to_string(member.getid()) + ":" + to_string(member.getport());
+    }
 
 };
 

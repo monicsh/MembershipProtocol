@@ -79,7 +79,7 @@ void Log::LOG(Address *addr, const char * str, ...) {
 	if (!firstTime) {
 		int magicNumber = 0;
 		string magic = MAGIC_NUMBER;
-		int len = magic.length();
+		int len = (int)magic.length();
 		for ( int i = 0; i < len; i++ ) {
 			magicNumber += (int)magic.at(i);
 		}
@@ -91,12 +91,12 @@ void Log::LOG(Address *addr, const char * str, ...) {
 		fprintf(fp2, "\n %s", stdstring);
 		fprintf(fp2, "[%d] ", par->getcurrtime());
 
-		fprintf(fp2, buffer);
+		fprintf(fp2, "%s", buffer);
 	}
 	else{
 		fprintf(fp, "\n %s", stdstring);
 		fprintf(fp, "[%d] ", par->getcurrtime());
-		fprintf(fp, buffer);
+		fprintf(fp, "%s", buffer);
 
 	}
 

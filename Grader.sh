@@ -75,6 +75,14 @@ if [ $accuracycount -eq 0 ] && [ $failcount -gt 0 ]; then
 else
 	echo "Checking Accuracy..............0/10"
 fi
+
+
+echo
+echo "failed node [$failednode]"
+echo "fail count [$failcount]"
+echo "accuracy count [$accuracycount]"
+echo
+
 echo "============================================"
 echo "Multi Failure Scenario"
 echo "============================"
@@ -138,6 +146,15 @@ do
         fi
 done
 echo "Checking Accuracy..............$tmp/10"
+
+
+echo
+echo "failed node [$failednode]"
+echo "fail count [$failcount]"
+echo "accuracy count [$accuracycount]"
+echo
+
+
 echo "============================================"
 echo "Message Drop Single Failure Scenario"
 echo "============================"
