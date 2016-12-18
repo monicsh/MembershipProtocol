@@ -70,7 +70,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "testcases/singlefailure.conf"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "testcases/msgdropsinglefailure.conf"
@@ -78,7 +78,23 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "testcases/multifailure.conf"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/read.conf"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/delete.conf"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/create.conf"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "testcases/update.conf"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
