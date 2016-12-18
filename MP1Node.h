@@ -30,12 +30,12 @@
  * Message Types
  */
 enum MsgTypes{
-    JOINREQ,
-    JOINREP,
-    NEWMEMBER,
-    LEAVEGROUP,
-    REGULAR,
-    DUMMYLASTMSGTYPE
+	JOINREQ,
+	JOINREP,
+	NEWMEMBER,
+	LEAVEGROUP,
+	REGULAR,
+	DUMMYLASTMSGTYPE
 };
 
 /**
@@ -73,27 +73,27 @@ public:
 	int finishUpThisNode();
 	void nodeLoop();
 	void checkMessages();
-    void sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType);
-    void sendMsgBack(Address* toNode, MsgTypes msgType );
-    void updateHeartbeat(int id, short port, long heartbeat);
+	void sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType);
+	void sendMsgBack(Address* toNode, MsgTypes msgType );
+	void updateHeartbeat(int id, short port, long heartbeat);
 	bool recvCallBack(void *env, char *data, int size);
-    bool deleteLeaveMemberEntry(int addId, short addPort);
-    MessageHdr* createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize);
-    void propogateRegularMessage();
+	bool deleteLeaveMemberEntry(int addId, short addPort);
+	MessageHdr* createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize);
+	void propogateRegularMessage();
 	void nodeLoopOps();
 	int isNullAddress(Address *addr);
 	Address getJoinAddress();
 	void initMemberListTable(Member *memberNode);
 	void printAddress(Address *addr);
-    void printMemberList();
-    void checkFailure();
+	void printMemberList();
+	void checkFailure();
 	virtual ~MP1Node();
-    void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
-    
-    static std::string AddressToString(MemberListEntry& member)
-    {
-        return to_string(member.getid()) + ":" + to_string(member.getport());
-    }
+	void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
+	
+	static std::string AddressToString(MemberListEntry& member)
+	{
+		return to_string(member.getid()) + ":" + to_string(member.getport());
+	}
 
 };
 

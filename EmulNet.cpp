@@ -128,7 +128,7 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 int EmulNet::ENsend(Address *myaddr, Address *toaddr, string data) {
 	char * str = (char *) malloc(data.length() * sizeof(char));
 	memcpy(str, data.c_str(), data.size());
-	int ret = this->ENsend(myaddr, toaddr, str, (int)(data.length() * sizeof(char)));
+	int ret = this->ENsend(myaddr, toaddr, str, (data.length() * sizeof(char)));
 	free(str);
 	return ret;
 }
