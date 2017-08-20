@@ -47,6 +47,41 @@ private:
 	EmulNet * emulNet;
 	// Object of Log
 	Log * log;
+	
+	vector<bool> neighbourStateCheckFlag;
+	
+	struct QuoromDetail
+	{
+		QuoromDetail() : replyCounter(0)
+		{ }
+		
+		MessageType transMsgType;
+		int reqTime;
+		string reqKey;
+		unsigned replyCounter;
+	};
+	
+	// container for tracking quorom for READ messages
+	std::map<int, struct QuoromDetail> quorumRead;
+	
+	// container for tracking quorom for DELETE messages
+	std::map<int, struct QuoromDetail> quorum;
+	
+
+	struct ActionOnReplicaNode
+	{
+		
+		Node node;
+		MessageType msgType;
+		ReplicaType replicaType;
+	};
+	
+	struct ViolatedNodeSet
+	{
+		ViolatedNodeSet() {};
+		vector<ActionOnReplicaNode> actionOnReplicaNode;
+	};
+
 
 public:
 	MP2Node(Member *memberNode, Params *par, EmulNet *emulNet, Log *log, Address *addressOfMember);
@@ -58,7 +93,7 @@ public:
 	void updateRing();
 	vector<Node> getMembershipList();
 	size_t hashFunction(string key);
-	void findNeighbors();
+
 
 	// client side CRUD APIs
 	void clientCreate(string key, string value);
@@ -85,8 +120,14 @@ public:
 	bool updateKeyValue(string key, string value, ReplicaType replica);
 	bool deletekey(string key);
 
+        ReplicaType ConvertToReplicaType(string replicaTypeString);
+    
 	// stabilization protocol - handle multiple failures
 	void stabilizationProtocol();
+	
+	// compare current state
+	bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
+	vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
 
 	~MP2Node();
 };

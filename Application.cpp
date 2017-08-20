@@ -77,15 +77,16 @@ Application::Application(char *infile) {
  * Destructor
  */
 Application::~Application() {
-	delete log;
-	delete en;
-	delete en1;
 	for ( int i = 0; i < par->EN_GPSZ; i++ ) {
 		delete mp1[i];
 		delete mp2[i];
 	}
 	free(mp1);
 	free(mp2);
+	
+	delete log;
+	delete en;
+	delete en1;
 	delete par;
 }
 

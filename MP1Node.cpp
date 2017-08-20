@@ -394,6 +394,9 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
 			updateHeartbeat(addId, addPort,heartbeat);
 		}
 		
+	} else if (msg->msgType == LEAVEGROUP){
+		// whichone?
+		//addId and addPort
 	}
 	
 	/*
@@ -639,8 +642,8 @@ void MP1Node::checkFailure()
 	
 	for(auto it = memberNode->memberList.begin() + 1; it != memberNode->memberList.end(); it++) {
 		// bool mismatchedItr = (it->getid() != memberNode->myPos->getid());
-		
-		if (((par->getcurrtime() - it->gettimestamp()) >= (115 * memberNode->pingCounter))) {
+		//115 - 50
+		if (((par->getcurrtime() - it->gettimestamp()) >= (3 * memberNode->pingCounter))) {
 			
 			Address nodeToRemove(AddressToString(*it));
 			log->logNodeRemove(&memberNode->addr, &nodeToRemove);
