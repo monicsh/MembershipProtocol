@@ -4,6 +4,7 @@
  * DESCRIPTION: MP2Node class definition
  **********************************/
 #include "MP2Node.h"
+#include "Queue.h"
 
 ReplicaType MP2Node::ConvertToReplicaType(string replicaTypeString)
 {
@@ -187,17 +188,18 @@ void MP2Node::clientCreate(string key, string value) {
 	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
 		Address toaddr = it->nodeAddress;
 		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-
+		
 		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
 
 	}
         //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
+	//4. Make entry in the quorum
 	this->quorum[g_transID].transMsgType = msgType;
 	this->quorum[g_transID].reqTime = this->par->getcurrtime();
 	this->quorum[g_transID].reqKey = key;
-
+	
+	//5. Increment transition id
 	g_transID++;
-
 
 }
 
@@ -709,7 +711,7 @@ bool MP2Node::recvLoop() {
  */
 int MP2Node::enqueueWrapper(void *env, char *buff, int size) {
     Queue q;
-    return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
+	return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
 }
 
 /**

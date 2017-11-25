@@ -6,6 +6,7 @@
  **********************************/
 
 #include "MP1Node.h"
+#include "Queue.h"
 
 /*
  * Note: You can change/add any functions in MP1Node.{h,cpp}

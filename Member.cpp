@@ -9,7 +9,7 @@
 /**
  * Constructor
  */
-q_elt::q_elt(void *elt, int size): elt(elt), size(size) {}
+//q_elt::q_elt(void *elt, int size): elt(elt), size(size) {}
 
 /**
  * Copy constructor

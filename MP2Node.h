@@ -17,7 +17,6 @@
 #include "Log.h"
 #include "Params.h"
 #include "Message.h"
-#include "Queue.h"
 
 /**
  * CLASS NAME: MP2Node
