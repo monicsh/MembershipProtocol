@@ -21,11 +21,11 @@ MembershipProtocol::MembershipProtocol(Member *member, Params *params, EmulNet *
 	for( int i = 0; i < 6; i++ ) {
 		NULLADDR[i] = 0;
 	}
-	this->memberNode = member;
-	this->emulNet = emul;
-	this->log = log;
-	this->par = params;
-	this->memberNode->addr = *address;
+	this->m_memberNode = member;
+	this->m_emulNet = emul;
+	this->m_log = log;
+	this->m_par = params;
+	this->m_memberNode->addr = *address;
 }
 
 /**
@@ -40,11 +40,11 @@ MembershipProtocol::~MembershipProtocol() {}
  * 				This function is called by a node to receive messages currently waiting for it
  */
 int MembershipProtocol::recvLoop() {
-	if ( memberNode->bFailed ) {
+	if ( m_memberNode->bFailed ) {
 		return false;
 	}
 	else {
-		return emulNet->ENrecv(&(memberNode->addr), enqueueWrapper, NULL, 1, &(memberNode->mp1q));
+		return m_emulNet->ENrecv(&(m_memberNode->addr), enqueueWrapper, NULL, 1, &(m_memberNode->mp1q));
 	}
 }
 
@@ -72,7 +72,7 @@ void MembershipProtocol::nodeStart(char *servaddrstr, short servport) {
 	// Self booting routines
 	if( initThisNode(&joinaddr) == -1 ) {
 #ifdef DEBUGLOG
-		log->LOG(&memberNode->addr, "init_thisnode failed. Exit.");
+		m_log->LOG(&m_memberNode->addr, "init_thisnode failed. Exit.");
 #endif
 		exit(1);
 	}
@@ -80,7 +80,7 @@ void MembershipProtocol::nodeStart(char *servaddrstr, short servport) {
 	if( !introduceSelfToGroup(&joinaddr) ) {
 		finishUpThisNode();
 #ifdef DEBUGLOG
-		log->LOG(&memberNode->addr, "Unable to join self to group. Exiting.");
+		m_log->LOG(&m_memberNode->addr, "Unable to join self to group. Exiting.");
 #endif
 		exit(1);
 	}
@@ -97,18 +97,18 @@ int MembershipProtocol::initThisNode(Address *joinaddr) {
 	/*
 	 * This function is partially implemented and may require changes
 	 */
-	int id = *(int*)(&memberNode->addr.addr);
-	int port = *(short*)(&memberNode->addr.addr[4]);
+	int id = *(int*)(&m_memberNode->addr.addr);
+	int port = *(short*)(&m_memberNode->addr.addr[4]);
 	
-	memberNode->bFailed = false;
-	memberNode->inited = true;
-	memberNode->inGroup = false;
+	m_memberNode->bFailed = false;
+	m_memberNode->inited = true;
+	m_memberNode->inGroup = false;
 	// node is up!
-	memberNode->nnb = 0;
-	memberNode->heartbeat = 0;
-	memberNode->pingCounter = TFAIL;
-	memberNode->timeOutCounter = -1;
-	initMemberListTable(memberNode);
+	m_memberNode->nnb = 0;
+	m_memberNode->heartbeat = 0;
+	m_memberNode->pingCounter = TFAIL;
+	m_memberNode->timeOutCounter = -1;
+	initMemberListTable(m_memberNode);
 	
 	return 0;
 }
@@ -124,21 +124,21 @@ int MembershipProtocol::introduceSelfToGroup(Address *joinaddr) {
 	static char s[1024];
 #endif
 	
-	if ( 0 == memcmp((char *)&(memberNode->addr.addr), (char *)&(joinaddr->addr), sizeof(memberNode->addr.addr))) {
+	if ( 0 == memcmp((char *)&(m_memberNode->addr.addr), (char *)&(joinaddr->addr), sizeof(m_memberNode->addr.addr))) {
 		// I am the group booter (first process to join the group). Boot up the group
 #ifdef DEBUGLOG
-		log->LOG(&memberNode->addr, "Starting up group...");
+		m_log->LOG(&m_memberNode->addr, "Starting up group...");
 #endif
-		memberNode->inGroup = true;
+		m_memberNode->inGroup = true;
 		
 		// make an own entry into the list
-		int myId = atoi(memberNode->addr.getAddress().substr(0,memberNode->addr.getAddress().find(":")).c_str());
-		short myPort = atoi(memberNode->addr.getAddress().substr(memberNode->addr.getAddress().find(":")+1).c_str());
-		MemberListEntry myEntry =  MemberListEntry(myId, myPort, memberNode->heartbeat, par->getcurrtime());
-		memberNode->memberList.push_back(myEntry);
-		log->logNodeAdd(&memberNode->addr, &memberNode->addr);
-		auto  pos = memberNode->memberList.begin();
-		memberNode->myPos = pos;
+		int myId = atoi(m_memberNode->addr.getAddress().substr(0,m_memberNode->addr.getAddress().find(":")).c_str());
+		short myPort = atoi(m_memberNode->addr.getAddress().substr(m_memberNode->addr.getAddress().find(":")+1).c_str());
+		MemberListEntry myEntry =  MemberListEntry(myId, myPort, m_memberNode->heartbeat, m_par->getcurrtime());
+		m_memberNode->memberList.push_back(myEntry);
+		m_log->logNodeAdd(&m_memberNode->addr, &m_memberNode->addr);
+		auto  pos = m_memberNode->memberList.begin();
+		m_memberNode->myPos = pos;
 		
 	}
 	else {
@@ -147,25 +147,25 @@ int MembershipProtocol::introduceSelfToGroup(Address *joinaddr) {
 		
 		// create JOINREQ message: format of data is {struct Address myaddr}
 		msg->msgType = JOINREQ;
-		memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
-		memcpy((char *)(msg+1) + 1 + sizeof(memberNode->addr.addr), &memberNode->heartbeat, sizeof(long));
+		memcpy((char *)(msg+1), &m_memberNode->addr.addr, sizeof(m_memberNode->addr.addr));
+		memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.addr), &m_memberNode->heartbeat, sizeof(long));
 		
 #ifdef DEBUGLOG
 		sprintf(s, "Trying to join...");
-		log->LOG(&memberNode->addr, s);
+		m_log->LOG(&m_memberNode->addr, s);
 #endif
 		
 		// make an own entry into the list
-		int myId = atoi(memberNode->addr.getAddress().substr(0,memberNode->addr.getAddress().find(":")).c_str());
-		short myPort = atoi(memberNode->addr.getAddress().substr(memberNode->addr.getAddress().find(":")+1).c_str());
-		MemberListEntry myEntry =  MemberListEntry(myId, myPort, memberNode->heartbeat, par->getcurrtime());
-		memberNode->memberList.push_back(myEntry);
-		log->logNodeAdd(&memberNode->addr, &memberNode->addr);
-		auto  pos = memberNode->memberList.begin();
-		memberNode->myPos = pos;
+		int myId = atoi(m_memberNode->addr.getAddress().substr(0,m_memberNode->addr.getAddress().find(":")).c_str());
+		short myPort = atoi(m_memberNode->addr.getAddress().substr(m_memberNode->addr.getAddress().find(":")+1).c_str());
+		MemberListEntry myEntry =  MemberListEntry(myId, myPort, m_memberNode->heartbeat, m_par->getcurrtime());
+		m_memberNode->memberList.push_back(myEntry);
+		m_log->logNodeAdd(&m_memberNode->addr, &m_memberNode->addr);
+		auto  pos = m_memberNode->memberList.begin();
+		m_memberNode->myPos = pos;
 		
 		// send JOINREQ message to introducer member
-		emulNet->ENsend(&memberNode->addr, joinaddr, (char *)msg, (int)msgsize);
+		m_emulNet->ENsend(&m_memberNode->addr, joinaddr, (char *)msg, (int)msgsize);
 		//std::cout << "\nDEBUG: ENSend from: " << memberNode->addr.getAddress() << ", to: " << joinaddr->getAddress() << "; msg type: " << msg->msgType << " ;heartbeat: " << memberNode->heartbeat << std::endl;
 		
 		free(msg);
@@ -194,7 +194,7 @@ int MembershipProtocol::finishUpThisNode() {
  * 				Check your messages in queue and perform membership protocol duties
  */
 void MembershipProtocol::nodeLoop() {
-	if (memberNode->bFailed) {
+	if (m_memberNode->bFailed) {
 		return;
 	}
 	
@@ -202,7 +202,7 @@ void MembershipProtocol::nodeLoop() {
 	checkMessages();
 	
 	// Wait until you're in the group...
-	if( !memberNode->inGroup ) {
+	if( !m_memberNode->inGroup ) {
 		return;
 	}
 	
@@ -222,11 +222,11 @@ void MembershipProtocol::checkMessages() {
 	int size;
 	
 	// Pop waiting messages from memberNode's mp1q
-	while ( !memberNode->mp1q.empty() ) {
-		ptr = memberNode->mp1q.front().elt;
-		size = memberNode->mp1q.front().size;
-		memberNode->mp1q.pop();
-		recvCallBack((void *)memberNode, (char *)ptr, size);
+	while ( !m_memberNode->mp1q.empty() ) {
+		ptr = m_memberNode->mp1q.front().elt;
+		size = m_memberNode->mp1q.front().size;
+		m_memberNode->mp1q.pop();
+		recvCallBack((void *)m_memberNode, (char *)ptr, size);
 	}
 	return;
 }
@@ -242,11 +242,11 @@ void MembershipProtocol::sendMsgBack(Address* toNode, MsgTypes msgType) {
 	
 	// create JOINREP message: format of data is {struct Address myaddr}
 	msg->msgType = msgType;
-	memcpy((char *)(msg+1), &memberNode->addr.addr, sizeof(memberNode->addr.addr));
-	memcpy((char *)(msg+1) + 1 + sizeof(memberNode->addr.addr), &memberNode->heartbeat, sizeof(long));
+	memcpy((char *)(msg+1), &m_memberNode->addr.addr, sizeof(m_memberNode->addr.addr));
+	memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.addr), &m_memberNode->heartbeat, sizeof(long));
 	
 	// send JOINREP message to new member
-	emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, (int)msgsize);
+	m_emulNet->ENsend(&m_memberNode->addr, toNode, (char *)msg, (int)msgsize);
 	free(msg);
 }
 
@@ -267,7 +267,7 @@ void MembershipProtocol::sendMemberListEntry(MemberListEntry* entry, Address* to
 	memcpy((char *)(msg+1), (char *)(newMemberAddress.addr), sizeof(newMemberAddress.addr));
 	memcpy((char *)(msg+1)+1 + sizeof(newMemberAddress.addr), &newMemberHeartbeat ,sizeof(long));
 	
-	emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, (int)msgsize);
+	m_emulNet->ENsend(&m_memberNode->addr, toNode, (char *)msg, (int)msgsize);
 	free(msg);
 	
 }
@@ -279,11 +279,11 @@ void MembershipProtocol::sendMemberListEntry(MemberListEntry* entry, Address* to
  */
 void MembershipProtocol::updateHeartbeat(int id, short port, long heartbeat){
 	bool found = false;
-	for(auto  it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
+	for(auto  it = m_memberNode->memberList.begin(); it != m_memberNode->memberList.end(); it++){
 		if (it->getid() == id and it->getport() == port){
 			if (it->getheartbeat() < heartbeat) {
 				it->setheartbeat(heartbeat);
-				it->settimestamp(par->getcurrtime());
+				it->settimestamp(m_par->getcurrtime());
 			}
 			
 			found = true;
@@ -293,11 +293,11 @@ void MembershipProtocol::updateHeartbeat(int id, short port, long heartbeat){
 	
 	// new entry
 	if (!found){
-		MemberListEntry newEntry = MemberListEntry(id, port, heartbeat, par->getcurrtime());
-		memberNode->memberList.push_back(newEntry);
+		MemberListEntry newEntry = MemberListEntry(id, port, heartbeat, m_par->getcurrtime());
+		m_memberNode->memberList.push_back(newEntry);
 		
 		Address addToLog = Address(to_string(id) + ":" + to_string(port));
-		log->logNodeAdd(&memberNode->addr, &addToLog);
+		m_log->logNodeAdd(&m_memberNode->addr, &addToLog);
 	}
 	
 	return;
@@ -328,28 +328,28 @@ bool MembershipProtocol::recvCallBack(void *env, char *data, int size ) {
 		sendMsgBack(address, JOINREP);
 		
 		// 2. Add new entry in own memberList
-		MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+		MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, m_par->getcurrtime());
 		member->memberList.push_back(newEntry);
 		
 		Address addToLog = Address(to_string(addId) + ":" + to_string(addPort));
-		log->logNodeAdd(&memberNode->addr, &addToLog);
+		m_log->logNodeAdd(&m_memberNode->addr, &addToLog);
 		
 		// 3. send info about new join member to all other memberss (NEWMEMBER)
 		for (auto  it = member->memberList.begin(); it != member->memberList.end(); it++){
 			string address = to_string(it->getid()) + ":" + to_string(it->getport());
 			Address toNode = Address(address);
-			if (memberNode->memberList[0].getid() != it->getid()){
+			if (m_memberNode->memberList[0].getid() != it->getid()){
 				sendMemberListEntry(&newEntry, &toNode, NEWMEMBER);
 			}
 		}
 		
 	} else if (msg->msgType == JOINREP){
 		
-		memberNode->inGroup = true;
-		memberNode->inited = true;
+		m_memberNode->inGroup = true;
+		m_memberNode->inited = true;
 		
 		//make own MemberListEntry in memberList
-		MemberListEntry coordinatorEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+		MemberListEntry coordinatorEntry = MemberListEntry(addId, addPort, heartbeat, m_par->getcurrtime());
 		
 		bool isDuplicate = false;
 		for (auto  it = member->memberList.begin(); it != member->memberList.end(); it++){
@@ -360,16 +360,16 @@ bool MembershipProtocol::recvCallBack(void *env, char *data, int size ) {
 			
 		}
 		if (!isDuplicate){
-			memberNode->memberList.push_back(coordinatorEntry);
+			m_memberNode->memberList.push_back(coordinatorEntry);
 			
 			Address addToLog = Address(to_string(addId)+":"+to_string(addPort));
-			log->logNodeAdd(&memberNode->addr, &addToLog);
+			m_log->logNodeAdd(&m_memberNode->addr, &addToLog);
 		}
 		
 	} else if (msg->msgType == NEWMEMBER){
 		//std::cout<<"I am: " <<memberNode->addr.getAddress()<<"new member is: "<< address->getAddress()<<endl;
-		if (memberNode->memberList[0].getid() != addId and memberNode->memberList[0].getid() != 1){
-			MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, par->getcurrtime());
+		if (m_memberNode->memberList[0].getid() != addId and m_memberNode->memberList[0].getid() != 1){
+			MemberListEntry newEntry = MemberListEntry(addId, addPort, heartbeat, m_par->getcurrtime());
 			
 			bool isDuplicate = false;
 			for (auto  it = member->memberList.begin(); it != member->memberList.end(); it++){
@@ -384,14 +384,14 @@ bool MembershipProtocol::recvCallBack(void *env, char *data, int size ) {
 				member->memberList.push_back(newEntry);
 				
 				Address addToLog = Address(to_string(addId)+":"+to_string(addPort));
-				log->logNodeAdd(&memberNode->addr, &addToLog);
+				m_log->logNodeAdd(&m_memberNode->addr, &addToLog);
 			}
 		}
 		
 	} else if (msg->msgType == REGULAR){
 		//update memberList for the member if the incoming heartbeat > heartbeat
 		//std::cout<<"REGULAR message: from: "<<addId<<endl;
-		if (!memberNode->memberList.empty() && memberNode->memberList[0].getid() != addId){
+		if (!m_memberNode->memberList.empty() && m_memberNode->memberList[0].getid() != addId){
 			updateHeartbeat(addId, addPort,heartbeat);
 		}
 		
@@ -435,10 +435,10 @@ void MembershipProtocol::sendLeaveMessage(Address* toNode, int addId, short addP
 	// create LEAVEGROUP message: format of data is {struct Address myaddr}
 	msg->msgType = msgType;
 	memcpy((char *)(msg+1), leaveMemberAddress.addr, sizeof(Address));
-	memcpy((char *)(msg+1) + 1 + sizeof(Address), &memberNode->heartbeat, sizeof(long));
+	memcpy((char *)(msg+1) + 1 + sizeof(Address), &m_memberNode->heartbeat, sizeof(long));
 	
 	// send LEAVEGROUP message to new member
-	emulNet->ENsend(&memberNode->addr, toNode, (char *)msg, (int)msgsize);
+	m_emulNet->ENsend(&m_memberNode->addr, toNode, (char *)msg, (int)msgsize);
 	free(msg);
 }
 
@@ -500,22 +500,22 @@ void MembershipProtocol::propogateRegularMessage(){
 	MemberListEntry* entry;
 	size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
 	
-	for(auto  it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
+	for(auto  it = m_memberNode->memberList.begin(); it != m_memberNode->memberList.end(); it++){
 		
-		if (it->getid() == memberNode->memberList[0].getid()){
+		if (it->getid() == m_memberNode->memberList[0].getid()){
 			//cout<<"this is my entry and here my info : "<<it->getid()<<"HB : "<<it->getheartbeat()<<endl;
-			memberNode->memberList[0].setheartbeat(memberNode->memberList[0].getheartbeat()+1);
+			m_memberNode->memberList[0].setheartbeat(m_memberNode->memberList[0].getheartbeat()+1);
 		}
 		entry = &*it;
 		MessageHdr* msg = createRegularMessage(entry, REGULAR, msgsize);
 		
 		//disseminateRegularMessage(MessageHdr* msg, msgsize );
-		for(auto  toNodeIt = memberNode->memberList.begin() + 1; toNodeIt != memberNode->memberList.end(); toNodeIt++){
+		for(auto  toNodeIt = m_memberNode->memberList.begin() + 1; toNodeIt != m_memberNode->memberList.end(); toNodeIt++){
 			//if (toNodeIt != memberNode->memberList[0]){
 			string toNodeAddressString = to_string(toNodeIt->getid()) + ":" + to_string(toNodeIt->getport());
 			Address toNodeAddress = Address(toNodeAddressString);
 			
-			emulNet->ENsend(&memberNode->addr, &toNodeAddress, (char *)msg, (int)msgsize);
+			m_emulNet->ENsend(&m_memberNode->addr, &toNodeAddress, (char *)msg, (int)msgsize);
 			//}
 		}
 	}
@@ -612,11 +612,11 @@ void MembershipProtocol::printAddress(Address *addr)
  */
 void MembershipProtocol::printMemberList()
 {
-	std::cout << "=== [id:" << memberNode->myPos->getid() << "] ";
+	std::cout << "=== [id:" << m_memberNode->myPos->getid() << "] ";
 	
-	printAddress(&memberNode->addr);
+	printAddress(&m_memberNode->addr);
 	
-	for (auto& mbr : memberNode->memberList)
+	for (auto& mbr : m_memberNode->memberList)
 	{
 		std::cout << mbr.getid() << " "
 		<< mbr.getport() << " "
@@ -641,15 +641,15 @@ void MembershipProtocol::checkFailure()
 	 printMemberList();
 	 }*/
 	
-	for(auto it = memberNode->memberList.begin() + 1; it != memberNode->memberList.end(); it++) {
+	for(auto it = m_memberNode->memberList.begin() + 1; it != m_memberNode->memberList.end(); it++) {
 		// bool mismatchedItr = (it->getid() != memberNode->myPos->getid());
 		//115 - 50
-		if (((par->getcurrtime() - it->gettimestamp()) >= (3 * memberNode->pingCounter))) {
+		if (((m_par->getcurrtime() - it->gettimestamp()) >= (3 * m_memberNode->pingCounter))) {
 			
 			Address nodeToRemove(AddressToString(*it));
-			log->logNodeRemove(&memberNode->addr, &nodeToRemove);
+			m_log->logNodeRemove(&m_memberNode->addr, &nodeToRemove);
 			
-			it = memberNode->memberList.erase(it);
+			it = m_memberNode->memberList.erase(it);
 			it--;
 		}
 	}

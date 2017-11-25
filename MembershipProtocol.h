@@ -53,16 +53,17 @@ typedef struct MessageHdr {
  */
 class MembershipProtocol {
 private:
-	EmulNet *emulNet;
-	Log *log;
-	Params *par;
-	Member *memberNode;
+	EmulNet *m_emulNet;
+	Log *m_log;
+	Params *m_par;
+	Member *m_memberNode;
 	char NULLADDR[6];
+    QueueInterface* m_queue;
 
 public:
 	MembershipProtocol(Member *, Params *, EmulNet *, Log *, Address *);
 	Member * getMemberNode() {
-		return memberNode;
+		return m_memberNode;
 	}
 	int recvLoop();
 	static int enqueueWrapper(void *env, char *buff, int size);
