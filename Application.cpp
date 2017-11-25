@@ -66,7 +66,7 @@ Application::Application(char *infile) {
 		joinaddr = getjoinaddr();
 		addressOfMemberNode = (Address *) en->ENinit(addressOfMemberNode, par->PORTNUM);
 		mp1[i] = new MembershipProtocol(memberNode, par, en, log, addressOfMemberNode, new MessageQueue());
-		mp2[i] = new KVStoreAlgorithm(memberNode, par, en1, log, addressOfMemberNode);
+		mp2[i] = new KVStoreAlgorithm(memberNode, par, en1, log, addressOfMemberNode , new MessageQueue());
 		log->LOG(&(mp1[i]->getMemberNode()->addr), "APP");
 		log->LOG(&(mp2[i]->getMemberNode()->addr), "APP MP2");
 		delete addressOfMemberNode;

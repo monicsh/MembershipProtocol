@@ -46,6 +46,8 @@ private:
 	EmulNet * emulNet;
 	// Object of Log
 	Log * log;
+    
+    IMessageQueue * m_queue;
 	
 	vector<bool> neighbourStateCheckFlag;
 	
@@ -83,7 +85,7 @@ private:
 
 
 public:
-	KVStoreAlgorithm(Member *memberNode, Params *par, EmulNet *emulNet, Log *log, Address *addressOfMember);
+	KVStoreAlgorithm(Member *memberNode, Params *par, EmulNet *emulNet, Log *log, Address *addressOfMember,IMessageQueue* queue);
 	Member * getMemberNode() {
 		return this->memberNode;
 	}

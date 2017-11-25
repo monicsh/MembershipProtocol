@@ -25,12 +25,14 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     Params *par,
     EmulNet * emulNet,
     Log * log,
-    Address * address)
+    Address * address,
+    IMessageQueue * queue )
 {
     this->memberNode = memberNode;
     this->par = par;
     this->emulNet = emulNet;
     this->log = log;
+    this->m_queue = queue;
 
     ht = new HashTable();
 
@@ -428,14 +430,14 @@ void KVStoreAlgorithm::checkMessages() {
      */
 
     // dequeue all messages and handle them
-    while ( !memberNode->mp2q.empty() ) {
+    while ( !m_queue->empty() ) {
         /*
          * Pop a message from the queue
          */
-        data = (char *)memberNode->mp2q.front().elt;
-        size = memberNode->mp2q.front().size;
-        memberNode->mp2q.pop();
-
+        q_elt item = m_queue->dequeue();
+        data = (char *) item.elt;
+        size = item.size;
+        
         /*
          * Handle the message types here
          */
@@ -699,7 +701,7 @@ bool KVStoreAlgorithm::recvLoop() {
     }
     else {
         bool flag;
-        flag =  emulNet->ENrecv(&(memberNode->addr), this->enqueueWrapper, NULL, 1, &(memberNode->mp2q));
+        flag =  emulNet->ENrecv(&(memberNode->addr), this->enqueueWrapper, NULL, 1, this->m_queue);
         return flag;
     }
 }
