@@ -28,7 +28,7 @@
  * 				3) Server side CRUD APIs
  * 				4) Client side CRUD APIs
  */
-class MP2Node {
+class KVStoreAlgorithm {
 private:
 	// Vector holding the next two neighbors in the ring who have my replicas
 	vector<Node> hasMyReplicas;
@@ -83,7 +83,7 @@ private:
 
 
 public:
-	MP2Node(Member *memberNode, Params *par, EmulNet *emulNet, Log *log, Address *addressOfMember);
+	KVStoreAlgorithm(Member *memberNode, Params *par, EmulNet *emulNet, Log *log, Address *addressOfMember);
 	Member * getMemberNode() {
 		return this->memberNode;
 	}
@@ -128,7 +128,7 @@ public:
 	bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
 	vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
 
-	~MP2Node();
+	~KVStoreAlgorithm();
 };
 
 #endif /* MP2NODE_H_ */

@@ -14,7 +14,7 @@
 #include "Member.h"
 #include "EmulNet.h"
 #include "Queue.h"
-#include "MP2Node.h"
+#include "KVStoreAlgorithm.h"
 #include "Node.h"
 #include "common.h"
 
@@ -55,7 +55,7 @@ private:
 	EmulNet *en1;
     Log *log;
 	MP1Node **mp1;
-	MP2Node **mp2;
+	KVStoreAlgorithm **mp2;
 	Params *par;
 	map<string, string> testKVPairs;
 public:
