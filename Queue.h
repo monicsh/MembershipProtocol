@@ -19,6 +19,7 @@ public:
 	void *elt;
 	int size;
 	q_elt(void *elt, int size);
+	q_elt(); // TODO: rmeove this later 
 };
 
 //Interface Q
@@ -38,14 +39,11 @@ class Queue : QueueInterface {
 public:
 	Queue();
 	virtual ~Queue();
+
 	static bool enqueue(queue<q_elt> *queue, void *buffer, int size);
-	bool enqueue() override {
 
-	}
-
-	q_elt dequeue() override {
-	}
-
+	bool enqueue() override;
+	q_elt dequeue() override;
 };
 
 

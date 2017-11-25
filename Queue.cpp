@@ -15,6 +15,10 @@ q_elt::q_elt(void *elt, int size)
 {
 }
 
+q_elt::q_elt()
+{
+}
+
 Queue::Queue() {
 
 }
@@ -27,6 +31,15 @@ bool Queue::enqueue(queue<q_elt> *queue, void *buffer, int size) {
 		q_elt element(buffer, size);
 		queue->emplace(element);
 		return true;
-
 }
+
+bool Queue::enqueue() {
+	return false;
+}
+
+q_elt Queue::dequeue() {
+	q_elt q;
+	return q;
+}
+
 
