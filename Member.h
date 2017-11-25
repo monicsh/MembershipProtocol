@@ -98,8 +98,6 @@ public:
 	vector<MemberListEntry> memberList;
 	// My position in the membership table
 	vector<MemberListEntry>::iterator myPos;
-	// Queue for failure detection messages
-	queue<q_elt> mp1q;
 	// Queue for KVstore messages
 	queue<q_elt> mp2q;
 	/**

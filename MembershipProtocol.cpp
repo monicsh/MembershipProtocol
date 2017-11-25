@@ -17,15 +17,16 @@
  * You can add new members to the class if you think it
  * is necessary for your logic to work
  */
-MembershipProtocol::MembershipProtocol(Member *member, Params *params, EmulNet *emul, Log *log, Address *address) {
-	for( int i = 0; i < 6; i++ ) {
-		NULLADDR[i] = 0;
-	}
-	this->m_memberNode = member;
-	this->m_emulNet = emul;
-	this->m_log = log;
-	this->m_par = params;
-	this->m_memberNode->addr = *address;
+MembershipProtocol::MembershipProtocol(Member *member, Params *params, EmulNet *emul, Log *log, Address *address, IMessageQueue* queue) {
+    for( int i = 0; i < 6; i++ ) {
+        NULLADDR[i] = 0;
+    }
+    this->m_memberNode = member;
+    this->m_emulNet = emul;
+    this->m_log = log;
+    this->m_par = params;
+    this->m_memberNode->addr = *address;
+    this->m_queue = queue;
 }
 
 /**
@@ -44,7 +45,7 @@ int MembershipProtocol::recvLoop() {
 		return false;
 	}
 	else {
-		return m_emulNet->ENrecv(&(m_memberNode->addr), enqueueWrapper, NULL, 1, &(m_memberNode->mp1q));
+		return m_emulNet->ENrecv(&(m_memberNode->addr), enqueueWrapper, NULL, 1, this->m_queue);
 	}
 }
 
@@ -222,10 +223,10 @@ void MembershipProtocol::checkMessages() {
 	int size;
 	
 	// Pop waiting messages from memberNode's mp1q
-	while ( !m_memberNode->mp1q.empty() ) {
-		ptr = m_memberNode->mp1q.front().elt;
-		size = m_memberNode->mp1q.front().size;
-		m_memberNode->mp1q.pop();
+	while ( !this->m_queue->empty() ) {
+        q_elt msg = this->m_queue->dequeue();
+		ptr = msg.elt;
+		size = msg.size;
 		recvCallBack((void *)m_memberNode, (char *)ptr, size);
 	}
 	return;

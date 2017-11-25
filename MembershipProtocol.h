@@ -13,6 +13,7 @@
 #include "Params.h"
 #include "Member.h"
 #include "EmulNet.h"
+#include "Queue.h"
 
 
 /**
@@ -58,10 +59,12 @@ private:
 	Params *m_par;
 	Member *m_memberNode;
 	char NULLADDR[6];
-    QueueInterface* m_queue;
+    IMessageQueue* m_queue;
 
 public:
-	MembershipProtocol(Member *, Params *, EmulNet *, Log *, Address *);
+    virtual ~MembershipProtocol();
+	MembershipProtocol(Member *, Params *, EmulNet *, Log *, Address *, IMessageQueue* queue);
+    
 	Member * getMemberNode() {
 		return m_memberNode;
 	}
@@ -87,7 +90,6 @@ public:
 	void printAddress(Address *addr);
 	void printMemberList();
 	void checkFailure();
-	virtual ~MembershipProtocol();
 	void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
 	
 	static std::string AddressToString(MemberListEntry& member)

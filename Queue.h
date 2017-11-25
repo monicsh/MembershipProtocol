@@ -23,9 +23,10 @@ public:
 };
 
 //Interface Q
-class QueueInterface {
+class IMessageQueue {
 public:
-	virtual bool enqueue()=0;
+    virtual bool empty()=0;
+	virtual void enqueue(void *buffer, int size)=0;
 	virtual q_elt dequeue()=0;
 
 };
@@ -35,17 +36,24 @@ public:
  *
  * Description: This function wraps std::queue related functions
  */
-class Queue : QueueInterface {
+class Queue {
 public:
-	Queue();
-	virtual ~Queue();
-
+    Queue() {}
+    virtual ~Queue() {}
 	static bool enqueue(queue<q_elt> *queue, void *buffer, int size);
-
-	bool enqueue() override;
-	q_elt dequeue() override;
 };
 
+class MessageQueue : public IMessageQueue
+{
+private:
+    queue<q_elt> m_messages;
 
+public:
+    MessageQueue();
+    virtual ~MessageQueue();
+    bool empty() override;
+    void enqueue(void *buffer, int size) override;
+    q_elt dequeue() override;
+};
 
 #endif /* QUEUE_H_ */

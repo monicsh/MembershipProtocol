@@ -19,27 +19,35 @@ q_elt::q_elt()
 {
 }
 
-Queue::Queue() {
-
-}
-
-Queue::~Queue() {
-
-}
-
 bool Queue::enqueue(queue<q_elt> *queue, void *buffer, int size) {
 		q_elt element(buffer, size);
 		queue->emplace(element);
 		return true;
 }
 
-bool Queue::enqueue() {
-	return false;
+MessageQueue::MessageQueue()
+{
 }
 
-q_elt Queue::dequeue() {
-	q_elt q;
-	return q;
+MessageQueue::~MessageQueue()
+{
 }
 
+bool MessageQueue::empty()
+{
+    return m_messages.empty();
+}
+
+void MessageQueue::enqueue(void *buffer, int size)
+{
+    q_elt element(buffer, size);
+    m_messages.emplace(element);
+}
+
+q_elt MessageQueue::dequeue()
+{
+    q_elt item = m_messages.front();
+    m_messages.pop();
+    return item;
+}
 
