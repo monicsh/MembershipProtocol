@@ -17,7 +17,7 @@
 		5B91D2BF1DF4D5DC005FFAF1 /* EmulNet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B21DF4D5DC005FFAF1 /* EmulNet.cpp */; };
 		5B91D2C01DF4D5DC005FFAF1 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B41DF4D5DC005FFAF1 /* Log.cpp */; };
 		5B91D2C11DF4D5DC005FFAF1 /* Member.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B61DF4D5DC005FFAF1 /* Member.cpp */; };
-		5B91D2C21DF4D5DC005FFAF1 /* MP1Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B81DF4D5DC005FFAF1 /* MP1Node.cpp */; };
+		5B91D2C21DF4D5DC005FFAF1 /* MembershipProtocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B81DF4D5DC005FFAF1 /* MembershipProtocol.cpp */; };
 		5B91D2C31DF4D5DC005FFAF1 /* Params.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */; };
 		5BEACE4A1FC9C13E00F78576 /* Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BEACE491FC9C13E00F78576 /* Queue.cpp */; };
 /* End PBXBuildFile section */
@@ -56,8 +56,8 @@
 		5B91D2B51DF4D5DC005FFAF1 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
 		5B91D2B61DF4D5DC005FFAF1 /* Member.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Member.cpp; sourceTree = "<group>"; };
 		5B91D2B71DF4D5DC005FFAF1 /* Member.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Member.h; sourceTree = "<group>"; };
-		5B91D2B81DF4D5DC005FFAF1 /* MP1Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MP1Node.cpp; sourceTree = "<group>"; };
-		5B91D2B91DF4D5DC005FFAF1 /* MP1Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MP1Node.h; sourceTree = "<group>"; };
+		5B91D2B81DF4D5DC005FFAF1 /* MembershipProtocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MembershipProtocol.cpp; sourceTree = "<group>"; };
+		5B91D2B91DF4D5DC005FFAF1 /* MembershipProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MembershipProtocol.h; sourceTree = "<group>"; };
 		5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Params.cpp; sourceTree = "<group>"; };
 		5B91D2BB1DF4D5DC005FFAF1 /* Params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Params.h; sourceTree = "<group>"; };
 		5B91D2BC1DF4D5DC005FFAF1 /* Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Queue.h; sourceTree = "<group>"; };
@@ -95,8 +95,8 @@
 				5B91D2B71DF4D5DC005FFAF1 /* Member.h */,
 				5B10AC911E06190B002D411F /* Message.cpp */,
 				5B10AC921E06190B002D411F /* Message.h */,
-				5B91D2B81DF4D5DC005FFAF1 /* MP1Node.cpp */,
-				5B91D2B91DF4D5DC005FFAF1 /* MP1Node.h */,
+				5B91D2B81DF4D5DC005FFAF1 /* MembershipProtocol.cpp */,
+				5B91D2B91DF4D5DC005FFAF1 /* MembershipProtocol.h */,
 				5B10AC931E06190B002D411F /* KVStoreAlgorithm.cpp */,
 				5B10AC941E06190B002D411F /* KVStoreAlgorithm.h */,
 				5B10AC951E06190B002D411F /* Node.cpp */,
@@ -189,7 +189,7 @@
 				5B91D2BF1DF4D5DC005FFAF1 /* EmulNet.cpp in Sources */,
 				5BEACE4A1FC9C13E00F78576 /* Queue.cpp in Sources */,
 				5B10AC9A1E06190B002D411F /* HashTable.cpp in Sources */,
-				5B91D2C21DF4D5DC005FFAF1 /* MP1Node.cpp in Sources */,
+				5B91D2C21DF4D5DC005FFAF1 /* MembershipProtocol.cpp in Sources */,
 				5B10AC9D1E06190B002D411F /* Node.cpp in Sources */,
 				5B91D2BE1DF4D5DC005FFAF1 /* Application.cpp in Sources */,
 				5B91D2C11DF4D5DC005FFAF1 /* Member.cpp in Sources */,

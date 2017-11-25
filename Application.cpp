@@ -52,7 +52,7 @@ Application::Application(char *infile) {
 	log = new Log(par);
 	en = new EmulNet(par);
 	en1 = new EmulNet(par);
-	mp1 = (MP1Node **) malloc(par->EN_GPSZ * sizeof(MP1Node *));
+	mp1 = (MembershipProtocol **) malloc(par->EN_GPSZ * sizeof(MembershipProtocol *));
 	mp2 = (KVStoreAlgorithm **) malloc(par->EN_GPSZ * sizeof(KVStoreAlgorithm *));
 
 	/*
@@ -65,7 +65,7 @@ Application::Application(char *infile) {
 		Address joinaddr;
 		joinaddr = getjoinaddr();
 		addressOfMemberNode = (Address *) en->ENinit(addressOfMemberNode, par->PORTNUM);
-		mp1[i] = new MP1Node(memberNode, par, en, log, addressOfMemberNode);
+		mp1[i] = new MembershipProtocol(memberNode, par, en, log, addressOfMemberNode);
 		mp2[i] = new KVStoreAlgorithm(memberNode, par, en1, log, addressOfMemberNode);
 		log->LOG(&(mp1[i]->getMemberNode()->addr), "APP");
 		log->LOG(&(mp2[i]->getMemberNode()->addr), "APP MP2");

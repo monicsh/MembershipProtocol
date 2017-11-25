@@ -8,7 +8,7 @@
 #define _APPLICATION_H_
 
 #include "stdincludes.h"
-#include "MP1Node.h"
+#include "MembershipProtocol.h"
 #include "Log.h"
 #include "Params.h"
 #include "Member.h"
@@ -54,7 +54,7 @@ private:
 	EmulNet *en;
 	EmulNet *en1;
     Log *log;
-	MP1Node **mp1;
+	MembershipProtocol **mp1;
 	KVStoreAlgorithm **mp2;
 	Params *par;
 	map<string, string> testKVPairs;

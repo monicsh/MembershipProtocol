@@ -5,7 +5,7 @@
  * 				Definition of MP1Node class functions.
  **********************************/
 
-#include "MP1Node.h"
+#include "MembershipProtocol.h"
 #include "Queue.h"
 
 /*
@@ -17,7 +17,7 @@
  * You can add new members to the class if you think it
  * is necessary for your logic to work
  */
-MP1Node::MP1Node(Member *member, Params *params, EmulNet *emul, Log *log, Address *address) {
+MembershipProtocol::MembershipProtocol(Member *member, Params *params, EmulNet *emul, Log *log, Address *address) {
 	for( int i = 0; i < 6; i++ ) {
 		NULLADDR[i] = 0;
 	}
@@ -31,7 +31,7 @@ MP1Node::MP1Node(Member *member, Params *params, EmulNet *emul, Log *log, Addres
 /**
  * Destructor of the MP1Node class
  */
-MP1Node::~MP1Node() {}
+MembershipProtocol::~MembershipProtocol() {}
 
 /**
  * FUNCTION NAME: recvLoop
@@ -39,7 +39,7 @@ MP1Node::~MP1Node() {}
  * DESCRIPTION: This function receives message from the network and pushes into the queue
  * 				This function is called by a node to receive messages currently waiting for it
  */
-int MP1Node::recvLoop() {
+int MembershipProtocol::recvLoop() {
 	if ( memberNode->bFailed ) {
 		return false;
 	}
@@ -53,7 +53,7 @@ int MP1Node::recvLoop() {
  *
  * DESCRIPTION: Enqueue the message from Emulnet into the queue
  */
-int MP1Node::enqueueWrapper(void *env, char *buff, int size) {
+int MembershipProtocol::enqueueWrapper(void *env, char *buff, int size) {
 	Queue q;
 	return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
 }
@@ -65,7 +65,7 @@ int MP1Node::enqueueWrapper(void *env, char *buff, int size) {
  * 				All initializations routines for a member.
  * 				Called by the application layer.
  */
-void MP1Node::nodeStart(char *servaddrstr, short servport) {
+void MembershipProtocol::nodeStart(char *servaddrstr, short servport) {
 	Address joinaddr;
 	joinaddr = getJoinAddress();
 	
@@ -93,7 +93,7 @@ void MP1Node::nodeStart(char *servaddrstr, short servport) {
  *
  * DESCRIPTION: Find out who I am and start up
  */
-int MP1Node::initThisNode(Address *joinaddr) {
+int MembershipProtocol::initThisNode(Address *joinaddr) {
 	/*
 	 * This function is partially implemented and may require changes
 	 */
@@ -118,7 +118,7 @@ int MP1Node::initThisNode(Address *joinaddr) {
  *
  * DESCRIPTION: Join the distributed system
  */
-int MP1Node::introduceSelfToGroup(Address *joinaddr) {
+int MembershipProtocol::introduceSelfToGroup(Address *joinaddr) {
 	MessageHdr *msg;
 #ifdef DEBUGLOG
 	static char s[1024];
@@ -180,7 +180,7 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
  *
  * DESCRIPTION: Wind up this node and clean up state
  */
-int MP1Node::finishUpThisNode() {
+int MembershipProtocol::finishUpThisNode() {
 	/*
 	 * Your code goes here
 	 */
@@ -193,7 +193,7 @@ int MP1Node::finishUpThisNode() {
  * DESCRIPTION: Executed periodically at each member
  * 				Check your messages in queue and perform membership protocol duties
  */
-void MP1Node::nodeLoop() {
+void MembershipProtocol::nodeLoop() {
 	if (memberNode->bFailed) {
 		return;
 	}
@@ -217,7 +217,7 @@ void MP1Node::nodeLoop() {
  *
  * DESCRIPTION: Check messages in the queue and call the respective message handler
  */
-void MP1Node::checkMessages() {
+void MembershipProtocol::checkMessages() {
 	void *ptr;
 	int size;
 	
@@ -236,7 +236,7 @@ void MP1Node::checkMessages() {
  *  Introducer response ro JOINREQ with JOINREP
  *
  */
-void MP1Node::sendMsgBack(Address* toNode, MsgTypes msgType) {
+void MembershipProtocol::sendMsgBack(Address* toNode, MsgTypes msgType) {
 	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->addr) + sizeof(long) + 1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
@@ -254,7 +254,7 @@ void MP1Node::sendMsgBack(Address* toNode, MsgTypes msgType) {
  *
  *  example- send new member info as NEWMEMBER(msgtype)t o all member
  */
-void MP1Node::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType) {
+void MembershipProtocol::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTypes msgType) {
 	size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
@@ -277,7 +277,7 @@ void MP1Node::sendMemberListEntry(MemberListEntry* entry, Address* toNode, MsgTy
  * DESCRIPTION: check heartbeat of a received entry in regular message whether it need to be updated in my list
  *              make a new entry in the list if does not find in the list
  */
-void MP1Node::updateHeartbeat(int id, short port, long heartbeat){
+void MembershipProtocol::updateHeartbeat(int id, short port, long heartbeat){
 	bool found = false;
 	for(auto  it = memberNode->memberList.begin(); it != memberNode->memberList.end(); it++){
 		if (it->getid() == id and it->getport() == port){
@@ -308,7 +308,7 @@ void MP1Node::updateHeartbeat(int id, short port, long heartbeat){
  *
  * DESCRIPTION: Message handler for different message types
  */
-bool MP1Node::recvCallBack(void *env, char *data, int size ) {
+bool MembershipProtocol::recvCallBack(void *env, char *data, int size ) {
 	
 	Member* member = (Member*)env;
 	MessageHdr* msg = (MessageHdr*)data;
@@ -426,7 +426,7 @@ bool MP1Node::recvCallBack(void *env, char *data, int size ) {
 /**
  * FUNCTION NAME: sendLeaveMessage
  */
-void MP1Node::sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType) {
+void MembershipProtocol::sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType) {
 	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->addr) + sizeof(long) + 1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
@@ -475,7 +475,7 @@ void MP1Node::sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTyp
  * FUNCTION NAME: createRegularMessage
  *
  */
-MessageHdr* MP1Node::createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize){
+MessageHdr* MembershipProtocol::createRegularMessage(MemberListEntry* entry, MsgTypes msgType, size_t msgsize){
 	//size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
@@ -496,7 +496,7 @@ MessageHdr* MP1Node::createRegularMessage(MemberListEntry* entry, MsgTypes msgTy
  *
  * DESCRIPTION : propogate REGULAR message to all members in the list
  */
-void MP1Node::propogateRegularMessage(){
+void MembershipProtocol::propogateRegularMessage(){
 	MemberListEntry* entry;
 	size_t msgsize = sizeof(MessageHdr) + (sizeof(Address)+1) + sizeof(long) +  1;
 	
@@ -531,7 +531,7 @@ void MP1Node::propogateRegularMessage(){
  * 				the nodes
  * 				Propagate your membership list
  */
-void MP1Node::nodeLoopOps() {
+void MembershipProtocol::nodeLoopOps() {
 	
 	/*
 	 * Your code goes here
@@ -567,7 +567,7 @@ void MP1Node::nodeLoopOps() {
  *
  * DESCRIPTION: Function checks if the address is NULL
  */
-int MP1Node::isNullAddress(Address *addr) {
+int MembershipProtocol::isNullAddress(Address *addr) {
 	return (memcmp(addr->addr, NULLADDR, 6) == 0 ? 1 : 0);
 }
 
@@ -576,7 +576,7 @@ int MP1Node::isNullAddress(Address *addr) {
  *
  * DESCRIPTION: Returns the Address of the coordinator
  */
-Address MP1Node::getJoinAddress() {
+Address MembershipProtocol::getJoinAddress() {
 	Address joinaddr;
 	
 	memset(&joinaddr, 0, sizeof(Address));
@@ -591,7 +591,7 @@ Address MP1Node::getJoinAddress() {
  *
  * DESCRIPTION: Initialize the membership list
  */
-void MP1Node::initMemberListTable(Member *memberNode) {
+void MembershipProtocol::initMemberListTable(Member *memberNode) {
 	memberNode->memberList.clear();
 }
 
@@ -600,7 +600,7 @@ void MP1Node::initMemberListTable(Member *memberNode) {
  *
  * DESCRIPTION: Print the Address
  */
-void MP1Node::printAddress(Address *addr)
+void MembershipProtocol::printAddress(Address *addr)
 {
 	printf("%d.%d.%d.%d:%d \n",  addr->addr[0],addr->addr[1],addr->addr[2],
 		   addr->addr[3], *(short*)&addr->addr[4]) ;
@@ -610,7 +610,7 @@ void MP1Node::printAddress(Address *addr)
 /**
  *
  */
-void MP1Node::printMemberList()
+void MembershipProtocol::printMemberList()
 {
 	std::cout << "=== [id:" << memberNode->myPos->getid() << "] ";
 	
@@ -631,7 +631,7 @@ void MP1Node::printMemberList()
  *
  * DESCRIPTION: check all membership enties in MEmberList whether && if the entry got timeout-delete it
  */
-void MP1Node::checkFailure()
+void MembershipProtocol::checkFailure()
 {
 	
 	// bool mismatchedItr = (!memberNode->memberList.empty() && memberNode->memberList[0].getid() != memberNode->myPos->getid());

@@ -51,7 +51,7 @@ typedef struct MessageHdr {
  *
  * DESCRIPTION: Class implementing Membership protocol functionalities for failure detection
  */
-class MP1Node {
+class MembershipProtocol {
 private:
 	EmulNet *emulNet;
 	Log *log;
@@ -60,7 +60,7 @@ private:
 	char NULLADDR[6];
 
 public:
-	MP1Node(Member *, Params *, EmulNet *, Log *, Address *);
+	MembershipProtocol(Member *, Params *, EmulNet *, Log *, Address *);
 	Member * getMemberNode() {
 		return memberNode;
 	}
@@ -86,7 +86,7 @@ public:
 	void printAddress(Address *addr);
 	void printMemberList();
 	void checkFailure();
-	virtual ~MP1Node();
+	virtual ~MembershipProtocol();
 	void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
 	
 	static std::string AddressToString(MemberListEntry& member)
