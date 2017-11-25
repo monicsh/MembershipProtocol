@@ -14,6 +14,7 @@
 #include "stdincludes.h"
 #include "Params.h"
 #include "Member.h"
+#include "IMessageQueue.h"
 
 using namespace std;
 
@@ -94,6 +95,8 @@ public:
 	int ENsend(Address *myaddr, Address *toaddr, char *data, int size);
 	int ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct timeval *t, int times, void *queue);
 	int ENcleanup();
+    
+    int ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, int times);
 };
 
 #endif /* _EMULNET_H_ */

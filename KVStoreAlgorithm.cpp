@@ -701,7 +701,7 @@ bool KVStoreAlgorithm::recvLoop() {
     }
     else {
         bool flag;
-        flag =  emulNet->ENrecv(&(memberNode->addr), this->enqueueWrapper, NULL, 1, this->m_queue);
+        flag =  emulNet->ENrecv(&(memberNode->addr), this->m_queue, NULL, 1);
         return flag;
     }
 }

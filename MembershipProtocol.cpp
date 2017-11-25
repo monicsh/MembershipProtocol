@@ -45,7 +45,7 @@ int MembershipProtocol::recvLoop() {
 		return false;
 	}
 	else {
-		return m_emulNet->ENrecv(&(m_memberNode->addr), enqueueWrapper, NULL, 1, this->m_queue);
+        return m_emulNet->ENrecv(&(m_memberNode->addr), this->m_queue, NULL, 1);
 	}
 }
 

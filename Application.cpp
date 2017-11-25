@@ -5,6 +5,7 @@
  **********************************/
 
 #include "Application.h"
+#include "MessageQueue.h"
 
 void handler(int sig) {
 	void *array[10];
