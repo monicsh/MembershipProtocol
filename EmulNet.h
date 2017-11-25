@@ -79,11 +79,11 @@ public:
 class EmulNet
 { 	
 private:
-	Params* par;
-	int sent_msgs[MAX_NODES + 1][MAX_TIME];
-	int recv_msgs[MAX_NODES + 1][MAX_TIME];
-	int enInited;
-	EM emulnet;
+	Params* m_par;
+	int m_sent_msgs[MAX_NODES + 1][MAX_TIME];
+	int m_recv_msgs[MAX_NODES + 1][MAX_TIME];
+	int m_enInited;
+	EM m_emulnet;
 public:
  	EmulNet(Params *p);
  	EmulNet(EmulNet &anotherEmulNet);
