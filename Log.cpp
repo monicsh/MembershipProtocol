@@ -91,12 +91,12 @@ void Log::LOG(Address *addr, const char * str, ...) {
 		fprintf(fp2, "\n %s", stdstring);
 		fprintf(fp2, "[%d] ", m_par->getcurrtime());
 
-		fprintf(fp2, buffer);
+        fprintf(fp2, "%s", buffer);
 	}
 	else{
 		fprintf(fp, "\n %s", stdstring);
 		fprintf(fp, "[%d] ", m_par->getcurrtime());
-		fprintf(fp, buffer);
+        fprintf(fp, "%s", buffer);
 
 	}
 

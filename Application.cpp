@@ -489,7 +489,7 @@ void Application::readTest() {
 	int number;
 	vector<Node> replicas;
 	int replicaIdToFail = TERTIARY;
-	int nodeToFail;
+    int nodeToFail = 0;
 	bool failedOneNode = false;
 
 	/**
@@ -734,7 +734,7 @@ void Application::updateTest() {
 	int number;
 	vector<Node> replicas;
 	int replicaIdToFail = TERTIARY;
-	int nodeToFail;
+    int nodeToFail = 0;
 	bool failedOneNode = false;
 
 	/**

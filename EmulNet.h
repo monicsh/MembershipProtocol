@@ -13,10 +13,8 @@
 
 #include "stdincludes.h"
 #include "Params.h"
-#include "Member.h"
+#include "Address.h"
 #include "IMessageQueue.h"
-
-using namespace std;
 
 /**
  * Struct Name: en_msg
@@ -34,12 +32,15 @@ typedef struct en_msg {
  * Class Name: EM
  */
 class EM {
-public:
+public: // TODO make this private once emulnet is understood
 	int nextid;
 	int currbuffsize;
 	int firsteltindex;
 	en_msg* buff[ENBUFFSIZE];
-	EM() {}
+
+public:
+	EM() {
+    }
 	EM& operator = (EM &anotherEM) {
 		this->nextid = anotherEM.getNextId();
 		this->currbuffsize = anotherEM.getCurrBuffSize();
@@ -69,7 +70,8 @@ public:
 	void setFirstEltIndex(int firsteltindex) {
 		this->firsteltindex = firsteltindex;
 	}
-	virtual ~EM() {}
+	virtual ~EM() {
+    }
 };
 
 /**
