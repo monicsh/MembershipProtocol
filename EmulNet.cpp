@@ -71,8 +71,8 @@ EmulNet::~EmulNet() {}
  */
 void *EmulNet::ENinit(Address *myaddr, short port) {
 	// Initialize data structures for this member
-	*(int *)(myaddr->addr) = m_emulnet.nextid++;
-    *(short *)(&myaddr->addr[4]) = 0;
+	*(int *)(myaddr->m_addr) = m_emulnet.nextid++;
+    *(short *)(&myaddr->m_addr[4]) = 0;
 	return myaddr;
 }
 
@@ -96,13 +96,13 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	em = (en_msg *)malloc(sizeof(en_msg) + size);
 	em->size = size;
 
-	memcpy(&(em->from.addr), &(myaddr->addr), sizeof(em->from.addr));
-	memcpy(&(em->to.addr), &(toaddr->addr), sizeof(em->from.addr));
+	memcpy(&(em->from.m_addr), &(myaddr->m_addr), sizeof(em->from.m_addr));
+	memcpy(&(em->to.m_addr), &(toaddr->m_addr), sizeof(em->from.m_addr));
 	memcpy(em + 1, data, size);
 
 	m_emulnet.buff[m_emulnet.currbuffsize++] = em;
 
-	int src = *(int *)(myaddr->addr);
+	int src = *(int *)(myaddr->m_addr);
 	int time = m_par->getcurrtime();
 
 	assert(src <= MAX_NODES);
@@ -111,7 +111,7 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	m_sent_msgs[src][time]++;
 
 	#ifdef DEBUGLOG
-		sprintf(temp, "Sending 4+%d B msg type %d to %d.%d.%d.%d:%d ", size-4, *(int *)data, toaddr->addr[0], toaddr->addr[1], toaddr->addr[2], toaddr->addr[3], *(short *)&toaddr->addr[4]);
+		sprintf(temp, "Sending 4+%d B msg type %d to %s ", size-4, *(int *)data, toaddr->getAddressLogFormatted().c_str());
 	#endif
 
 	return size;
@@ -151,7 +151,7 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
     for( i = m_emulnet.currbuffsize - 1; i >= 0; i-- ) {
         emsg = m_emulnet.buff[i];
         
-        if ( 0 != strcmp(emsg->to.addr, myaddr->addr) ) {
+        if ( 0 != strcmp(emsg->to.m_addr, myaddr->m_addr) ) {
             continue;
         }
         
@@ -166,7 +166,7 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
         
         free(emsg);
         
-        int dst = *(int *)(myaddr->addr);
+        int dst = *(int *)(myaddr->m_addr);
         int time = m_par->getcurrtime();
         
         assert(dst <= MAX_NODES);

@@ -87,8 +87,8 @@ int MembershipProtocol::initThisNode(Address *joinaddr) {
 	/*
 	 * This function is partially implemented and may require changes
 	 */
-	int id = *(int*)(&m_memberNode->addr.addr);
-	int port = *(short*)(&m_memberNode->addr.addr[4]);
+	int id = *(int*)(&m_memberNode->addr.m_addr);
+	int port = *(short*)(&m_memberNode->addr.m_addr[4]);
 	
 	m_memberNode->bFailed = false;
 	m_memberNode->inited = true;
@@ -114,7 +114,7 @@ int MembershipProtocol::introduceSelfToGroup(Address *joinaddr) {
 	static char s[1024];
 #endif
 	
-	if ( 0 == memcmp((char *)&(m_memberNode->addr.addr), (char *)&(joinaddr->addr), sizeof(m_memberNode->addr.addr))) {
+	if ( 0 == memcmp((char *)&(m_memberNode->addr.m_addr), (char *)&(joinaddr->m_addr), sizeof(m_memberNode->addr.m_addr))) {
 		// I am the group booter (first process to join the group). Boot up the group
 #ifdef DEBUGLOG
 		m_log->LOG(&m_memberNode->addr, "Starting up group...");
@@ -132,13 +132,13 @@ int MembershipProtocol::introduceSelfToGroup(Address *joinaddr) {
 		
 	}
 	else {
-		size_t msgsize = sizeof(MessageHdr) + sizeof(joinaddr->addr) + sizeof(long) + 1;
+		size_t msgsize = sizeof(MessageHdr) + sizeof(joinaddr->m_addr) + sizeof(long) + 1;
 		msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 		
 		// create JOINREQ message: format of data is {struct Address myaddr}
 		msg->msgType = JOINREQ;
-		memcpy((char *)(msg+1), &m_memberNode->addr.addr, sizeof(m_memberNode->addr.addr));
-		memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.addr), &m_memberNode->heartbeat, sizeof(long));
+		memcpy((char *)(msg+1), &m_memberNode->addr.m_addr, sizeof(m_memberNode->addr.m_addr));
+		memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.m_addr), &m_memberNode->heartbeat, sizeof(long));
 		
 #ifdef DEBUGLOG
 		sprintf(s, "Trying to join...");
@@ -227,13 +227,13 @@ void MembershipProtocol::checkMessages() {
  *
  */
 void MembershipProtocol::sendMsgBack(Address* toNode, MsgTypes msgType) {
-	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->addr) + sizeof(long) + 1;
+	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->m_addr) + sizeof(long) + 1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
 	// create JOINREP message: format of data is {struct Address myaddr}
 	msg->msgType = msgType;
-	memcpy((char *)(msg+1), &m_memberNode->addr.addr, sizeof(m_memberNode->addr.addr));
-	memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.addr), &m_memberNode->heartbeat, sizeof(long));
+	memcpy((char *)(msg+1), &m_memberNode->addr.m_addr, sizeof(m_memberNode->addr.m_addr));
+	memcpy((char *)(msg+1) + 1 + sizeof(m_memberNode->addr.m_addr), &m_memberNode->heartbeat, sizeof(long));
 	
 	// send JOINREP message to new member
 	m_emulNet->ENsend(&m_memberNode->addr, toNode, (char *)msg, (int)msgsize);
@@ -254,8 +254,8 @@ void MembershipProtocol::sendMemberListEntry(MemberListEntry* entry, Address* to
 	long newMemberHeartbeat = entry->getheartbeat();
 	
 	msg->msgType = msgType;
-	memcpy((char *)(msg+1), (char *)(newMemberAddress.addr), sizeof(newMemberAddress.addr));
-	memcpy((char *)(msg+1)+1 + sizeof(newMemberAddress.addr), &newMemberHeartbeat ,sizeof(long));
+	memcpy((char *)(msg+1), (char *)(newMemberAddress.m_addr), sizeof(newMemberAddress.m_addr));
+	memcpy((char *)(msg+1)+1 + sizeof(newMemberAddress.m_addr), &newMemberHeartbeat ,sizeof(long));
 	
 	m_emulNet->ENsend(&m_memberNode->addr, toNode, (char *)msg, (int)msgsize);
 	free(msg);
@@ -417,14 +417,14 @@ bool MembershipProtocol::recvCallBack(void *env, char *data, int size ) {
  * FUNCTION NAME: sendLeaveMessage
  */
 void MembershipProtocol::sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType) {
-	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->addr) + sizeof(long) + 1;
+	size_t msgsize = sizeof(MessageHdr) + sizeof(toNode->m_addr) + sizeof(long) + 1;
 	MessageHdr* msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 	
 	Address leaveMemberAddress(to_string(addId) + ":" + to_string(addPort));
 	
 	// create LEAVEGROUP message: format of data is {struct Address myaddr}
 	msg->msgType = msgType;
-	memcpy((char *)(msg+1), leaveMemberAddress.addr, sizeof(Address));
+	memcpy((char *)(msg+1), leaveMemberAddress.m_addr, sizeof(Address));
 	memcpy((char *)(msg+1) + 1 + sizeof(Address), &m_memberNode->heartbeat, sizeof(long));
 	
 	// send LEAVEGROUP message to new member
@@ -475,8 +475,8 @@ MessageHdr* MembershipProtocol::createRegularMessage(MemberListEntry* entry, Msg
 	long mleHeartbeat = entry->getheartbeat();
 	
 	msg->msgType = msgType;
-	memcpy((char *)(msg+1), (char *)(mleAddress.addr), sizeof(mleAddress.addr));
-	memcpy((char *)(msg+1)+1 + sizeof(mleAddress.addr), &mleHeartbeat ,sizeof(long));
+	memcpy((char *)(msg+1), (char *)(mleAddress.m_addr), sizeof(mleAddress.m_addr));
+	memcpy((char *)(msg+1)+1 + sizeof(mleAddress.m_addr), &mleHeartbeat ,sizeof(long));
 	
 	return msg;
 }
@@ -558,7 +558,7 @@ void MembershipProtocol::nodeLoopOps() {
  * DESCRIPTION: Function checks if the address is NULL
  */
 int MembershipProtocol::isNullAddress(Address *addr) {
-	return (memcmp(addr->addr, NULLADDR, 6) == 0 ? 1 : 0);
+	return (memcmp(addr->m_addr, NULLADDR, 6) == 0 ? 1 : 0);
 }
 
 /**
@@ -570,8 +570,8 @@ Address MembershipProtocol::getJoinAddress() {
 	Address joinaddr;
 	
 	memset(&joinaddr, 0, sizeof(Address));
-	*(int *)(&joinaddr.addr) = 1;
-	*(short *)(&joinaddr.addr[4]) = 0;
+	*(int *)(&joinaddr.m_addr) = 1;
+	*(short *)(&joinaddr.m_addr[4]) = 0;
 	
 	return joinaddr;
 }
@@ -592,8 +592,8 @@ void MembershipProtocol::initMemberListTable(Member *memberNode) {
  */
 void MembershipProtocol::printAddress(Address *addr)
 {
-	printf("%d.%d.%d.%d:%d \n",  addr->addr[0],addr->addr[1],addr->addr[2],
-		   addr->addr[3], *(short*)&addr->addr[4]) ;
+	printf("%d.%d.%d.%d:%d \n",  addr->m_addr[0],addr->m_addr[1],addr->m_addr[2],
+		   addr->m_addr[3], *(short*)&addr->m_addr[4]) ;
 }
 
 

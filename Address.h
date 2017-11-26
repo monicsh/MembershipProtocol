@@ -19,8 +19,8 @@
 class Address {
 private:
     const static int MAX_BYTES = 6;
-public:
-    char addr[MAX_BYTES];
+public: // TODO: make this private when project wide dependency is resolved on this field
+    char m_addr[MAX_BYTES];
 public:
     Address();
     Address(const Address &anotherAddress);

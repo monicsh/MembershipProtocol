@@ -12,7 +12,7 @@
  * Constructor
  */
 Address::Address() {
-    memset(&addr, 0, sizeof(addr));
+    memset(&m_addr, 0, sizeof(m_addr));
 }
 
 /**
@@ -20,7 +20,7 @@ Address::Address() {
  */
 Address::Address(const Address &anotherAddress) {
     // strcpy(addr, anotherAddress.addr);
-    memcpy(&addr, &anotherAddress.addr, sizeof(addr));
+    memcpy(&m_addr, &anotherAddress.m_addr, sizeof(m_addr));
 }
 
 /**
@@ -28,7 +28,7 @@ Address::Address(const Address &anotherAddress) {
  */
 Address& Address::operator =(const Address& anotherAddress) {
     // strcpy(addr, anotherAddress.addr);
-    memcpy(&addr, &anotherAddress.addr, sizeof(addr));
+    memcpy(&m_addr, &anotherAddress.m_addr, sizeof(m_addr));
     return *this;
 }
 
@@ -36,21 +36,21 @@ Address& Address::operator =(const Address& anotherAddress) {
  * Compare two Address objects
  */
 bool Address::operator ==(const Address& anotherAddress) {
-    return !memcmp(this->addr, anotherAddress.addr, sizeof(this->addr));
+    return !memcmp(this->m_addr, anotherAddress.m_addr, sizeof(this->m_addr));
 }
 
 Address::Address(string address) {
     size_t pos = address.find(":");
     int id = stoi(address.substr(0, pos));
     short port = (short)stoi(address.substr(pos + 1, address.size()-pos-1));
-    memcpy(&addr[0], &id, sizeof(int));
-    memcpy(&addr[4], &port, sizeof(short));
+    memcpy(&m_addr[0], &id, sizeof(int));
+    memcpy(&m_addr[4], &port, sizeof(short));
 }
 
 string Address::getAddressLogFormatted() {
     // %d.%d.%d.%d:%d
     char formatstring[30]={0};
-    sprintf(formatstring, "%d.%d.%d.%d:%d", addr[0], addr[1],addr[2],addr[3], (short*)addr[4]);
+    sprintf(formatstring, "%d.%d.%d.%d:%d", m_addr[0], m_addr[1],m_addr[2],m_addr[3], (short*)m_addr[4]);
 
     return formatstring;
 }
@@ -58,14 +58,14 @@ string Address::getAddressLogFormatted() {
 string Address::getAddress() {
     int id = 0;
     short port;
-    memcpy(&id, &addr[0], sizeof(int));
-    memcpy(&port, &addr[4], sizeof(short));
+    memcpy(&id, &m_addr[0], sizeof(int));
+    memcpy(&port, &m_addr[4], sizeof(short));
     return to_string(id) + ":" + to_string(port);
 }
 
 char Address::getAddrByte(int pos) {
     if (pos >= 0 && pos < MAX_BYTES) {
-        return addr[pos];
+        return m_addr[pos];
     }
 
     throw new runtime_error("bad byte requested");

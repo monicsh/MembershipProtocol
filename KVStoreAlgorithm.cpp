@@ -144,8 +144,8 @@ vector<Node> KVStoreAlgorithm::getMembershipList()
         short port = this->memberNode->memberList.at(i).getport();
 
         Address addressOfThisMember;
-        memcpy(&addressOfThisMember.addr[0], &id, sizeof(int));
-        memcpy(&addressOfThisMember.addr[4], &port, sizeof(short));
+        memcpy(&addressOfThisMember.m_addr[0], &id, sizeof(int));
+        memcpy(&addressOfThisMember.m_addr[4], &port, sizeof(short));
 
         curMemList.emplace_back(Node(addressOfThisMember));
     }

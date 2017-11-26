@@ -374,8 +374,8 @@ void Application::fail() {
 Address Application::getjoinaddr(void){
 	//trace.funcEntry("Application::getjoinaddr");
     Address joinaddr;
-    *(int *)(&(joinaddr.addr))=1;
-    *(short *)(&(joinaddr.addr[4]))=0;
+    *(int *)(&(joinaddr.m_addr))=1;
+    *(short *)(&(joinaddr.m_addr[4]))=0;
     //trace.funcExit("Application::getjoinaddr", SUCCESS);
     return joinaddr;
 }
