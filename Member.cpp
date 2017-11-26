@@ -7,11 +7,6 @@
 #include "Member.h"
 
 /**
- * Constructor
- */
-//q_elt::q_elt(void *elt, int size): elt(elt), size(size) {}
-
-/**
  * Copy constructor
  */
 Address::Address(const Address &anotherAddress) {

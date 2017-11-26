@@ -11,7 +11,7 @@
 
 #include "stdincludes.h"
 
-#include "q_elt.h"
+#include "RawMessage.h"
 #include "IMessageQueue.h"
 
 

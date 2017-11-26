@@ -19,7 +19,6 @@ public:
     void *elt;
     int size;
     q_elt(void *elt, int size);
-    q_elt(); // TODO: rmeove this later
 };
 
 #endif /* q_elt_hpp */

@@ -9,7 +9,7 @@
 #ifndef IMessageQueue_hpp
 #define IMessageQueue_hpp
 
-#include "q_elt.h"
+#include "RawMessage.h"
 
 //Interface Q
 class IMessageQueue {
