@@ -93,10 +93,8 @@ public:
 	void *ENinit(Address *myaddr, short port);
 	int ENsend(Address *myaddr, Address *toaddr, string data);
 	int ENsend(Address *myaddr, Address *toaddr, char *data, int size);
-	int ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct timeval *t, int times, void *queue);
-	int ENcleanup();
-    
     int ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, int times);
+	int ENcleanup();
 };
 
 #endif /* _EMULNET_H_ */

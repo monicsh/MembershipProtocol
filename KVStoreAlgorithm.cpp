@@ -706,17 +706,6 @@ bool KVStoreAlgorithm::recvLoop() {
 }
 
 /**
- * FUNCTION NAME: enqueueWrapper
- *
- * DESCRIPTION: Enqueue the message from Emulnet into the queue of MP2Node
- */
-int KVStoreAlgorithm::enqueueWrapper(void *env, char *buff, int size) {
-    return -1;
-//    Queue q;
-//    return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
-}
-
-/**
  * FUNCTION NAME: stabilizationProtocol
  *
  * DESCRIPTION: This runs the stabilization protocol in case of Node joins and leaves

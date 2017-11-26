@@ -141,41 +141,6 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, string data) {
  * RETURN:
  * 0
  */
-int EmulNet::ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct timeval *t, int times, void *queue){
-	// times is always assumed to be 1
-	int i;
-	char* tmp;
-	int sz;
-	en_msg *emsg;
-
-	for( i = m_emulnet.currbuffsize - 1; i >= 0; i-- ) {
-		emsg = m_emulnet.buff[i];
-
-		if ( 0 == strcmp(emsg->to.addr, myaddr->addr) ) {
-			sz = emsg->size;
-			tmp = (char *) malloc(sz * sizeof(char));
-			memcpy(tmp, (char *)(emsg+1), sz);
-
-			m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.currbuffsize-1];
-			m_emulnet.currbuffsize--;
-
-			(*enq)(queue, (char *)tmp, sz);
-
-			free(emsg);
-
-			int dst = *(int *)(myaddr->addr);
-			int time = m_par->getcurrtime();
-
-			assert(dst <= MAX_NODES);
-			assert(time < MAX_TIME);
-
-			m_recv_msgs[dst][time]++;
-		}
-	}
-
-	return 0;
-}
-
 int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, int times){
     // times is always assumed to be 1
     int i;
