@@ -13,7 +13,6 @@
 #include "Params.h"
 #include "Member.h"
 #include "EmulNet.h"
-#include "Queue.h"
 #include "KVStoreAlgorithm.h"
 #include "Node.h"
 #include "common.h"

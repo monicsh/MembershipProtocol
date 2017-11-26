@@ -4,7 +4,6 @@
  * DESCRIPTION: MP2Node class definition
  **********************************/
 #include "KVStoreAlgorithm.h"
-#include "Queue.h"
 
 ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
 {
@@ -712,8 +711,9 @@ bool KVStoreAlgorithm::recvLoop() {
  * DESCRIPTION: Enqueue the message from Emulnet into the queue of MP2Node
  */
 int KVStoreAlgorithm::enqueueWrapper(void *env, char *buff, int size) {
-    Queue q;
-	return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
+    return -1;
+//    Queue q;
+//    return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
 }
 
 /**

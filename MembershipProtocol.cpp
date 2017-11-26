@@ -6,7 +6,6 @@
  **********************************/
 
 #include "MembershipProtocol.h"
-#include "Queue.h"
 
 /*
  * Note: You can change/add any functions in MP1Node.{h,cpp}
@@ -55,8 +54,9 @@ int MembershipProtocol::recvLoop() {
  * DESCRIPTION: Enqueue the message from Emulnet into the queue
  */
 int MembershipProtocol::enqueueWrapper(void *env, char *buff, int size) {
-	Queue q;
-	return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
+    return -1;
+//    Queue q;
+//    return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
 }
 
 /**

@@ -8,7 +8,6 @@
 #define MEMBER_H_
 
 #include "stdincludes.h"
-#include "Queue.h"
 
 
 /**

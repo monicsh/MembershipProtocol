@@ -13,7 +13,6 @@
 #include "Params.h"
 #include "Member.h"
 #include "EmulNet.h"
-#include "Queue.h"
 #include "IMessageQueue.h"
 
 

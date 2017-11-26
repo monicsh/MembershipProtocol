@@ -11,16 +11,16 @@ CFLAGS =  -g -std=c++11
 
 all: Application
 
-Application: MP1Node.o EmulNet.o Application.o Log.o Params.o Member.o Queue.o Trace.o MP2Node.o Node.o HashTable.o Entry.o Message.o 
-	g++ -o Application MP1Node.o EmulNet.o Application.o Log.o Params.o Queue.o Member.o Trace.o MP2Node.o Node.o HashTable.o Entry.o Message.o ${CFLAGS}
+Application: MembershipProtocol.o EmulNet.o Application.o Log.o Params.o Member.o MessageQueue.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o q_elt.o
+	g++ -o Application MembershipProtocol.o EmulNet.o Application.o Log.o Params.o MessageQueue.o Member.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o q_elt.o ${CFLAGS}
 
-MP1Node.o: MP1Node.cpp MP1Node.h Log.h Params.h Member.h EmulNet.h Queue.h
-	g++ -c MP1Node.cpp ${CFLAGS}
+MembershipProtocol.o: MembershipProtocol.cpp MembershipProtocol.h Log.h Params.h Member.h EmulNet.h MessageQueue.h
+	g++ -c MembershipProtocol.cpp ${CFLAGS}
 
 EmulNet.o: EmulNet.cpp EmulNet.h Params.h Member.h
 	g++ -c EmulNet.cpp ${CFLAGS}
 
-Application.o: Application.cpp Application.h Member.h Log.h Params.h Member.h EmulNet.h Queue.o
+Application.o: Application.cpp Application.h Member.h Log.h Params.h Member.h EmulNet.h MessageQueue.o
 	g++ -c Application.cpp ${CFLAGS}
 
 Log.o: Log.cpp Log.h Params.h Member.h
@@ -35,11 +35,14 @@ Member.o: Member.cpp Member.h
 Trace.o: Trace.cpp Trace.h
 	g++ -c Trace.cpp ${CFLAGS}
 
-MP2Node.o: MP2Node.cpp MP2Node.h EmulNet.h Params.h Member.h Trace.h Node.h HashTable.h Log.h Params.h Message.h Queue.h
-	g++ -c MP2Node.cpp ${CFLAGS}
+KVStoreAlgorithm.o: KVStoreAlgorithm.cpp KVStoreAlgorithm.h EmulNet.h Params.h Member.h Trace.h Node.h HashTable.h Log.h Params.h Message.h
+	g++ -c KVStoreAlgorithm.cpp ${CFLAGS}
 
-Queue.o: Queue.cpp Queue.h
-	g++ -c Queue.cpp ${CFLAGS}
+MessageQueue.o: IMessageQueue.h MessageQueue.cpp MessageQueue.h
+	g++ -c MessageQueue.cpp ${CFLAGS}
+
+q_elt.o: q_elt.h q_elt.cpp
+	g++ -c q_elt.cpp ${CFLAGS}
 
 Node.o: Node.cpp Node.h Member.h
 	g++ -c Node.cpp ${CFLAGS}

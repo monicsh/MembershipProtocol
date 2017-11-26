@@ -67,7 +67,6 @@
 		5B91D2B91DF4D5DC005FFAF1 /* MembershipProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MembershipProtocol.h; sourceTree = "<group>"; };
 		5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Params.cpp; sourceTree = "<group>"; };
 		5B91D2BB1DF4D5DC005FFAF1 /* Params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Params.h; sourceTree = "<group>"; };
-		5B91D2BC1DF4D5DC005FFAF1 /* Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Queue.h; sourceTree = "<group>"; };
 		5B91D2BD1DF4D5DC005FFAF1 /* stdincludes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdincludes.h; sourceTree = "<group>"; };
 		5BF183F61DF4D50800E9EAE5 /* MembershipProtocol */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MembershipProtocol; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -109,7 +108,6 @@
 				5B10AC961E06190B002D411F /* Node.h */,
 				5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */,
 				5B91D2BB1DF4D5DC005FFAF1 /* Params.h */,
-				5B91D2BC1DF4D5DC005FFAF1 /* Queue.h */,
 				5B91D2BD1DF4D5DC005FFAF1 /* stdincludes.h */,
 				5B10AC971E06190B002D411F /* Trace.cpp */,
 				5B10AC981E06190B002D411F /* Trace.h */,
