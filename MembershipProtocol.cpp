@@ -213,7 +213,7 @@ void MembershipProtocol::checkMessages() {
 	
 	// Pop waiting messages from memberNode's mp1q
 	while ( !this->m_queue->empty() ) {
-        q_elt msg = this->m_queue->dequeue();
+        RawMessage msg = this->m_queue->dequeue();
 		ptr = msg.elt;
 		size = msg.size;
 		recvCallBack((void *)m_memberNode, (char *)ptr, size);

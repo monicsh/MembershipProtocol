@@ -14,11 +14,11 @@
  *
  * DESCRIPTION: Entry in the queue
  */
-class q_elt {
+class RawMessage {
 public:
     void *elt;
     int size;
-    q_elt(void *elt, int size);
+    RawMessage(void *elt, int size);
 };
 
 #endif /* q_elt_hpp */

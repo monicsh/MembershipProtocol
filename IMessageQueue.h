@@ -16,7 +16,7 @@ class IMessageQueue {
 public:
     virtual bool empty()=0;
     virtual void enqueue(void *buffer, int size)=0;
-    virtual q_elt dequeue()=0;
+    virtual RawMessage dequeue()=0;
     
 };
 

@@ -23,13 +23,13 @@ bool MessageQueue::empty()
 
 void MessageQueue::enqueue(void *buffer, int size)
 {
-    q_elt item(buffer, size);
+    RawMessage item(buffer, size);
     m_messages.emplace(item);
 }
 
-q_elt MessageQueue::dequeue()
+RawMessage MessageQueue::dequeue()
 {
-    q_elt item = m_messages.front();
+    RawMessage item = m_messages.front();
     m_messages.pop();
     return item;
 }

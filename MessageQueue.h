@@ -18,14 +18,14 @@
 class MessageQueue : public IMessageQueue
 {
 private:
-    std::queue<q_elt> m_messages;
+    std::queue<RawMessage> m_messages;
     
 public:
     MessageQueue();
     virtual ~MessageQueue();
     bool empty() override;
     void enqueue(void *buffer, int size) override;
-    q_elt dequeue() override;
+    RawMessage dequeue() override;
 };
 
 #endif /* MessageQueue_hpp */

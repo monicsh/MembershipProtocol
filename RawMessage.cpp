@@ -8,7 +8,7 @@
 
 #include "RawMessage.h"
 
-q_elt::q_elt(void *elt, int size)
+RawMessage::RawMessage(void *elt, int size)
 : elt(elt), size(size)
 {
 }

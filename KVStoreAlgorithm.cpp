@@ -433,7 +433,7 @@ void KVStoreAlgorithm::checkMessages() {
         /*
          * Pop a message from the queue
          */
-        q_elt item = m_queue->dequeue();
+        RawMessage item = m_queue->dequeue();
         data = (char *) item.elt;
         size = item.size;
         
