@@ -23,6 +23,7 @@
 		5B91D2C21DF4D5DC005FFAF1 /* MembershipProtocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B81DF4D5DC005FFAF1 /* MembershipProtocol.cpp */; };
 		5B91D2C31DF4D5DC005FFAF1 /* Params.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */; };
 		5B9DFD231FCA52D700F34FC0 /* Address.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B9DFD211FCA52D700F34FC0 /* Address.cpp */; };
+		5BB147BB1FCA59C7001BE56B /* MemberListEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BB147B91FCA59C7001BE56B /* MemberListEntry.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,6 +72,8 @@
 		5B91D2BD1DF4D5DC005FFAF1 /* stdincludes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdincludes.h; sourceTree = "<group>"; };
 		5B9DFD211FCA52D700F34FC0 /* Address.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Address.cpp; sourceTree = "<group>"; };
 		5B9DFD221FCA52D700F34FC0 /* Address.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Address.h; sourceTree = "<group>"; };
+		5BB147B91FCA59C7001BE56B /* MemberListEntry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MemberListEntry.cpp; sourceTree = "<group>"; };
+		5BB147BA1FCA59C7001BE56B /* MemberListEntry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MemberListEntry.h; sourceTree = "<group>"; };
 		5BF183F61DF4D50800E9EAE5 /* MembershipProtocol */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MembershipProtocol; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -153,6 +156,8 @@
 				5B91D2B71DF4D5DC005FFAF1 /* Member.h */,
 				5B9DFD211FCA52D700F34FC0 /* Address.cpp */,
 				5B9DFD221FCA52D700F34FC0 /* Address.h */,
+				5BB147B91FCA59C7001BE56B /* MemberListEntry.cpp */,
+				5BB147BA1FCA59C7001BE56B /* MemberListEntry.h */,
 			);
 			name = MemberRelated;
 			sourceTree = "<group>";
@@ -245,6 +250,7 @@
 				5B10AC9E1E06190B002D411F /* Trace.cpp in Sources */,
 				5B8B0F5A1FCA3376005F97B9 /* RawMessage.cpp in Sources */,
 				5B10AC9B1E06190B002D411F /* Message.cpp in Sources */,
+				5BB147BB1FCA59C7001BE56B /* MemberListEntry.cpp in Sources */,
 				5B10AC9C1E06190B002D411F /* KVStoreAlgorithm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

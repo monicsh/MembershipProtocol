@@ -9,32 +9,8 @@
 
 #include "stdincludes.h"
 #include "Address.h"
+#include "MemberListEntry.h"
 
-/**
- * CLASS NAME: MemberListEntry
- *
- * DESCRIPTION: Entry in the membership list
- */
-class MemberListEntry {
-public:
-	int id;
-	short port;
-	long heartbeat;
-	long timestamp;
-	MemberListEntry(int id, short port, long heartbeat, long timestamp);
-	MemberListEntry(int id, short port);
-	MemberListEntry(): id(0), port(0), heartbeat(0), timestamp(0) {}
-	MemberListEntry(const MemberListEntry &anotherMLE);
-	MemberListEntry& operator =(const MemberListEntry &anotherMLE);
-	int getid();
-	short getport();
-	long getheartbeat();
-	long gettimestamp();
-	void setid(int id);
-	void setport(short port);
-	void setheartbeat(long hearbeat);
-	void settimestamp(long timestamp);
-};
 
 /**
  * CLASS NAME: Member
