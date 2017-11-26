@@ -9,7 +9,7 @@
 
 #include "stdincludes.h"
 #include "Params.h"
-#include "Member.h"
+#include "Address.h"
 
 /*
  * Macros
@@ -25,10 +25,11 @@
  *
  * DESCRIPTION: Functions to log messages in a debug log
  */
-class Log{
+class Log
+{
 private:
-	Params *par;
-	bool firstTime;
+	Params *m_par;
+	bool m_firstTime;
 public:
 	Log(Params *p);
 	Log(const Log &anotherLog);

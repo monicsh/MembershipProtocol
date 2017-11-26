@@ -22,6 +22,7 @@
 		5B91D2C11DF4D5DC005FFAF1 /* Member.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B61DF4D5DC005FFAF1 /* Member.cpp */; };
 		5B91D2C21DF4D5DC005FFAF1 /* MembershipProtocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2B81DF4D5DC005FFAF1 /* MembershipProtocol.cpp */; };
 		5B91D2C31DF4D5DC005FFAF1 /* Params.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */; };
+		5B9DFD231FCA52D700F34FC0 /* Address.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B9DFD211FCA52D700F34FC0 /* Address.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -68,6 +69,8 @@
 		5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Params.cpp; sourceTree = "<group>"; };
 		5B91D2BB1DF4D5DC005FFAF1 /* Params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Params.h; sourceTree = "<group>"; };
 		5B91D2BD1DF4D5DC005FFAF1 /* stdincludes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdincludes.h; sourceTree = "<group>"; };
+		5B9DFD211FCA52D700F34FC0 /* Address.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Address.cpp; sourceTree = "<group>"; };
+		5B9DFD221FCA52D700F34FC0 /* Address.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Address.h; sourceTree = "<group>"; };
 		5BF183F61DF4D50800E9EAE5 /* MembershipProtocol */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MembershipProtocol; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,6 +88,7 @@
 		5B91D2AF1DF4D5AE005FFAF1 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				5B9DFD201FCA529D00F34FC0 /* MemberRelated */,
 				5B9DFD1F1FCA513B00F34FC0 /* MessageRelated */,
 				5B9DFD1E1FCA4A8200F34FC0 /* Protocols */,
 				5B10AC8A1E06190B002D411F /* common.h */,
@@ -95,12 +99,8 @@
 				5B10AC8C1E06190B002D411F /* Entry.h */,
 				5B10AC8E1E06190B002D411F /* HashTable.cpp */,
 				5B10AC8F1E06190B002D411F /* HashTable.h */,
-				5B91D2B61DF4D5DC005FFAF1 /* Member.cpp */,
-				5B91D2B71DF4D5DC005FFAF1 /* Member.h */,
 				5B10AC951E06190B002D411F /* Node.cpp */,
 				5B10AC961E06190B002D411F /* Node.h */,
-				5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */,
-				5B91D2BB1DF4D5DC005FFAF1 /* Params.h */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -108,6 +108,8 @@
 		5B9DFD1D1FCA4A0900F34FC0 /* infrastructor */ = {
 			isa = PBXGroup;
 			children = (
+				5B91D2BA1DF4D5DC005FFAF1 /* Params.cpp */,
+				5B91D2BB1DF4D5DC005FFAF1 /* Params.h */,
 				5B91D2B21DF4D5DC005FFAF1 /* EmulNet.cpp */,
 				5B91D2B31DF4D5DC005FFAF1 /* EmulNet.h */,
 				5B91D2B41DF4D5DC005FFAF1 /* Log.cpp */,
@@ -142,6 +144,17 @@
 				5B8B0F5C1FCA33BF005F97B9 /* MessageQueue.h */,
 			);
 			name = MessageRelated;
+			sourceTree = "<group>";
+		};
+		5B9DFD201FCA529D00F34FC0 /* MemberRelated */ = {
+			isa = PBXGroup;
+			children = (
+				5B91D2B61DF4D5DC005FFAF1 /* Member.cpp */,
+				5B91D2B71DF4D5DC005FFAF1 /* Member.h */,
+				5B9DFD211FCA52D700F34FC0 /* Address.cpp */,
+				5B9DFD221FCA52D700F34FC0 /* Address.h */,
+			);
+			name = MemberRelated;
 			sourceTree = "<group>";
 		};
 		5BF183ED1DF4D50700E9EAE5 = {
@@ -219,6 +232,7 @@
 			files = (
 				5B91D2C01DF4D5DC005FFAF1 /* Log.cpp in Sources */,
 				5B91D2BF1DF4D5DC005FFAF1 /* EmulNet.cpp in Sources */,
+				5B9DFD231FCA52D700F34FC0 /* Address.cpp in Sources */,
 				5B10AC9A1E06190B002D411F /* HashTable.cpp in Sources */,
 				5B91D2C21DF4D5DC005FFAF1 /* MembershipProtocol.cpp in Sources */,
 				5B10AC9D1E06190B002D411F /* Node.cpp in Sources */,
