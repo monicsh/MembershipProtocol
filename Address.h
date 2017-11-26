@@ -17,14 +17,19 @@
  * DESCRIPTION: Class representing the address of a single node
  */
 class Address {
+private:
+    const static int MAX_BYTES = 6;
 public:
-    char addr[6];
+    char addr[MAX_BYTES];
+public:
     Address();
     Address(const Address &anotherAddress);
     Address& operator =(const Address &anotherAddress);
     bool operator ==(const Address &anotherAddress);
     Address(string address);
     string getAddress();
+    string getAddressLogFormatted();
+    char getAddrByte(int pos);
 };
 
 #endif /* Address_hpp */

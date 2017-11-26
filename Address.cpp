@@ -47,12 +47,28 @@ Address::Address(string address) {
     memcpy(&addr[4], &port, sizeof(short));
 }
 
+string Address::getAddressLogFormatted() {
+    // %d.%d.%d.%d:%d
+    char formatstring[30]={0};
+    sprintf(formatstring, "%d.%d.%d.%d:%d", addr[0], addr[1],addr[2],addr[3], (short*)addr[4]);
+
+    return formatstring;
+}
+
 string Address::getAddress() {
     int id = 0;
     short port;
     memcpy(&id, &addr[0], sizeof(int));
     memcpy(&port, &addr[4], sizeof(short));
     return to_string(id) + ":" + to_string(port);
+}
+
+char Address::getAddrByte(int pos) {
+    if (pos >= 0 && pos < MAX_BYTES) {
+        return addr[pos];
+    }
+
+    throw new runtime_error("bad byte requested");
 }
 
 

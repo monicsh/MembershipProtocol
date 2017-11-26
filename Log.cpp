@@ -70,7 +70,7 @@ void Log::LOG(Address *addr, const char * str, ...) {
 	}
 	else 
 
-	sprintf(stdstring, "%d.%d.%d.%d:%d ", addr->addr[0], addr->addr[1], addr->addr[2], addr->addr[3], *(short *)&addr->addr[4]);
+	sprintf(stdstring, "%s ", addr->getAddressLogFormatted().c_str());
 
 	va_start(vararglist, str);
 	vsprintf(buffer, str, vararglist);
@@ -115,7 +115,7 @@ void Log::LOG(Address *addr, const char * str, ...) {
  */
 void Log::logNodeAdd(Address *thisNode, Address *addedAddr) {
 	static char stdstring[100];
-	sprintf(stdstring, "Node %d.%d.%d.%d:%d joined at time %d", addedAddr->addr[0], addedAddr->addr[1], addedAddr->addr[2], addedAddr->addr[3], *(short *)&addedAddr->addr[4], m_par->getcurrtime());
+	sprintf(stdstring, "Node %s joined at time %d", addedAddr->getAddressLogFormatted().c_str(), m_par->getcurrtime());
     LOG(thisNode, stdstring);
 }
 
@@ -126,7 +126,7 @@ void Log::logNodeAdd(Address *thisNode, Address *addedAddr) {
  */
 void Log::logNodeRemove(Address *thisNode, Address *removedAddr) {
 	static char stdstring[30];
-	sprintf(stdstring, "Node %d.%d.%d.%d:%d removed at time %d", removedAddr->addr[0], removedAddr->addr[1], removedAddr->addr[2], removedAddr->addr[3], *(short *)&removedAddr->addr[4], m_par->getcurrtime());
+	sprintf(stdstring, "Node %s removed at time %d", removedAddr->getAddressLogFormatted().c_str(), m_par->getcurrtime());
     LOG(thisNode, stdstring);
 }
 
