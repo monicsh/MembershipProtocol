@@ -20,7 +20,15 @@ EM& EM::operator = (EM &anotherEM) {
     return *this;
 }
 
-int EM::getNextId() {
+void EM::incrementNextId(){
+    this->nextid++;
+}
+
+void EM::resetNextId(){
+    this->nextid = 0;
+}
+
+int EM::getNextId() const {
     return nextid;
 }
 

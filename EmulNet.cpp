@@ -72,7 +72,9 @@ EmulNet::~EmulNet() {}
  */
 void *EmulNet::ENinit(Address *myaddr, short port) {
 	// Initialize data structures for this member
-	*(int *)(myaddr->m_addr) = m_emulnet.nextid++;
+
+    *(int *)(myaddr->m_addr) = m_emulnet.getNextId();
+    m_emulnet.incrementNextId();
     *(short *)(&myaddr->m_addr[4]) = 0;
 	return myaddr;
 }
@@ -186,7 +188,7 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
  * DESCRIPTION: Cleanup the EmulNet. Called exactly once at the end of the program.
  */
 int EmulNet::ENcleanup() {
-	m_emulnet.nextid=0;
+	m_emulnet.resetNextId();
 	int i, j;
 	int sent_total, recv_total;
 

@@ -30,15 +30,18 @@ typedef struct en_msg {
  * Class Name: EM
  */
 class EM {
-public: // TODO make this private once emulnet is understood
+private:
     int nextid;
+public: // TODO make this private once emulnet is understood
     int currbuffsize;
     int firsteltindex;
     en_msg* buff[ENBUFFSIZE];
 
 public:
     EM& operator = (EM &anotherEM);
-    int getNextId();
+    void incrementNextId();
+    void resetNextId();
+    int getNextId() const;
     int getCurrBuffSize();
     int getFirstEltIndex();
     void setNextId(int nextid);

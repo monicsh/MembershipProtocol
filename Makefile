@@ -11,14 +11,17 @@ CFLAGS =  -g -std=c++11
 
 all: Application
 
-Application: MembershipProtocol.o EmulNet.o Application.o Log.o Params.o Member.o MessageQueue.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o RawMessage.o Address.o MemberListEntry.o
-	g++ -o Application MembershipProtocol.o EmulNet.o Application.o Log.o Params.o MessageQueue.o Member.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o MemberListEntry.o Address.o RawMessage.o ${CFLAGS}
+Application: MembershipProtocol.o EmulNet.o Application.o Log.o Params.o Member.o MessageQueue.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o RawMessage.o Address.o MemberListEntry.o EM.o
+	g++ -o Application *.o ${CFLAGS}
 
 MembershipProtocol.o: MembershipProtocol.cpp MembershipProtocol.h Log.h Params.h Member.h EmulNet.h MessageQueue.h Member.o
 	g++ -c MembershipProtocol.cpp ${CFLAGS}
 
-EmulNet.o: EmulNet.cpp EmulNet.h Params.h Member.h
+EmulNet.o: EmulNet.cpp EmulNet.h Params.h Member.h EM.h
 	g++ -c EmulNet.cpp ${CFLAGS}
+
+EM.o: EM.cpp EM.h Address.h
+	g++ -c EM.cpp ${CFLAGS}
 
 Application.o: Application.cpp Application.h Member.h Log.h Params.h Member.h EmulNet.h MessageQueue.o
 	g++ -c Application.cpp ${CFLAGS}
