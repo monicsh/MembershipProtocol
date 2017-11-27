@@ -15,64 +15,9 @@
 #include "Params.h"
 #include "Address.h"
 #include "IMessageQueue.h"
+#include "EM.h"
 
-/**
- * Struct Name: en_msg
- */
-typedef struct en_msg {
-	// Number of bytes after the class
-	int size;
-	// Source node
-	Address from;
-	// Destination node
-	Address to;
-}en_msg;
 
-/**
- * Class Name: EM
- */
-class EM {
-public: // TODO make this private once emulnet is understood
-	int nextid;
-	int currbuffsize;
-	int firsteltindex;
-	en_msg* buff[ENBUFFSIZE];
-
-public:
-	EM() {
-    }
-	EM& operator = (EM &anotherEM) {
-		this->nextid = anotherEM.getNextId();
-		this->currbuffsize = anotherEM.getCurrBuffSize();
-		this->firsteltindex = anotherEM.getFirstEltIndex();
-		int i = this->currbuffsize;
-		while (i > 0) {
-			this->buff[i] = anotherEM.buff[i];
-			i--;
-		}
-		return *this;
-	}
-	int getNextId() {
-		return nextid;
-	}
-	int getCurrBuffSize() {
-		return currbuffsize;
-	}
-	int getFirstEltIndex() {
-		return firsteltindex;
-	}
-	void setNextId(int nextid) {
-		this->nextid = nextid;
-	}
-	void settCurrBuffSize(int currbuffsize) {
-		this->currbuffsize = currbuffsize;
-	}
-	void setFirstEltIndex(int firsteltindex) {
-		this->firsteltindex = firsteltindex;
-	}
-	virtual ~EM() {
-    }
-};
 
 /**
  * CLASS NAME: EmulNet
