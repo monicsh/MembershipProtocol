@@ -33,18 +33,18 @@ class EM {
 private:
     int nextid;
     int currbuffsize;
-
-public: // TODO make this private once emulnet is understood
     en_msg* buff[ENBUFFSIZE];
 
-
+//public: // TODO make this private once emulnet is understood
 public:
     EM& operator = (EM &anotherEM);
     void incrementNextId();
     void resetNextId();
     int getNextId() const;
     int getCurrBuffSize();
+    en_msg * getBuffer(int buffsize);
     void setNextId(int nextid);
     void setCurrBuffSize(int currbuffsize);
+    void setBuffer(int buffsize, en_msg * buff);
     virtual ~EM();
 };

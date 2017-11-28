@@ -35,12 +35,20 @@ int EM::getCurrBuffSize() {
     return currbuffsize;
 }
 
+en_msg * EM::getBuffer(int buffsize){
+    return this->buff[buffsize];
+}
+
 void EM::setNextId(int nextid) {
     this->nextid = nextid;
 }
 
 void EM::setCurrBuffSize(int currbuffsize) {
     this->currbuffsize = currbuffsize;
+}
+
+void EM::setBuffer(int buffsize , en_msg * buff){
+    this->buff[buffsize] = buff;
 }
 
 EM::~EM(){

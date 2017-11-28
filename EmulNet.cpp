@@ -104,7 +104,7 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	memcpy(em + 1, data, size);
 
 	//m_emulnet.buff[m_emulnet.currbuffsize++] = em;
-    m_emulnet.buff[m_emulnet.getCurrBuffSize()] = em;
+    m_emulnet.setBuffer(m_emulnet.getCurrBuffSize(), em);
     m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()+1);
 
 	int src = *(int *)(myaddr->m_addr);
@@ -154,7 +154,8 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
     en_msg *emsg;
     
     for( i = m_emulnet.getCurrBuffSize() - 1; i >= 0; i-- ) {
-        emsg = m_emulnet.buff[i];
+        //emsg = m_emulnet.buff[i];
+        emsg = m_emulnet.getBuffer(i);
         
         if ( 0 != strcmp(emsg->to.m_addr, myaddr->m_addr) ) {
             continue;
@@ -164,7 +165,8 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
         tmp = (char *) malloc(sz * sizeof(char));
         memcpy(tmp, (char *)(emsg+1), sz);
         
-        m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.getCurrBuffSize()-1];
+        //m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.getCurrBuffSize()-1];
+        m_emulnet.setBuffer(i, m_emulnet.getBuffer(m_emulnet.getCurrBuffSize()-1));
         //m_emulnet.currbuffsize--;
         m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
         
@@ -200,7 +202,7 @@ int EmulNet::ENcleanup() {
 	while(m_emulnet.getCurrBuffSize() > 0) {
 		//free(m_emulnet.buff[--m_emulnet.currbuffsize]);
         m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
-        free(m_emulnet.buff[m_emulnet.getCurrBuffSize()]);
+        free(m_emulnet.getBuffer(m_emulnet.getCurrBuffSize()));
 	}
 
 	for ( i = 1; i <= m_par->EN_GPSZ; i++ ) {
