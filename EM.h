@@ -32,10 +32,11 @@ typedef struct en_msg {
 class EM {
 private:
     int nextid;
-    
+    int currbuffsize;
+
 public: // TODO make this private once emulnet is understood
     en_msg* buff[ENBUFFSIZE];
-    int currbuffsize;
+
 
 public:
     EM& operator = (EM &anotherEM);
@@ -44,6 +45,6 @@ public:
     int getNextId() const;
     int getCurrBuffSize();
     void setNextId(int nextid);
-    void settCurrBuffSize(int currbuffsize);
+    void setCurrBuffSize(int currbuffsize);
     virtual ~EM();
 };

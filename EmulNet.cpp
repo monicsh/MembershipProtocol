@@ -16,7 +16,7 @@ EmulNet::EmulNet(Params *p)
 	int i,j;
 	m_par = p;
 	m_emulnet.setNextId(1);
-	m_emulnet.settCurrBuffSize(0);
+	m_emulnet.setCurrBuffSize(0);
 	m_enInited=0;
 	for ( i = 0; i < MAX_NODES; i++ ) {
 		for ( j = 0; j < MAX_TIME; j++ ) {
@@ -92,7 +92,7 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	static char temp[2048];
 	int sendmsg = rand() % 100;
 
-	if( (m_emulnet.currbuffsize >= ENBUFFSIZE) || (size + (int)sizeof(en_msg) >= m_par->MAX_MSG_SIZE) || (m_par->dropmsg && sendmsg < (int) (m_par->MSG_DROP_PROB * 100)) ) {
+	if( (m_emulnet.getCurrBuffSize() >= ENBUFFSIZE) || (size + (int)sizeof(en_msg) >= m_par->MAX_MSG_SIZE) || (m_par->dropmsg && sendmsg < (int) (m_par->MSG_DROP_PROB * 100)) ) {
 		return 0;
 	}
 
@@ -103,7 +103,9 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	memcpy(&(em->to.m_addr), &(toaddr->m_addr), sizeof(em->from.m_addr));
 	memcpy(em + 1, data, size);
 
-	m_emulnet.buff[m_emulnet.currbuffsize++] = em;
+	//m_emulnet.buff[m_emulnet.currbuffsize++] = em;
+    m_emulnet.buff[m_emulnet.getCurrBuffSize()] = em;
+    m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()+1);
 
 	int src = *(int *)(myaddr->m_addr);
 	int time = m_par->getcurrtime();
@@ -151,7 +153,7 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
     int sz;
     en_msg *emsg;
     
-    for( i = m_emulnet.currbuffsize - 1; i >= 0; i-- ) {
+    for( i = m_emulnet.getCurrBuffSize() - 1; i >= 0; i-- ) {
         emsg = m_emulnet.buff[i];
         
         if ( 0 != strcmp(emsg->to.m_addr, myaddr->m_addr) ) {
@@ -162,8 +164,9 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
         tmp = (char *) malloc(sz * sizeof(char));
         memcpy(tmp, (char *)(emsg+1), sz);
         
-        m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.currbuffsize-1];
-        m_emulnet.currbuffsize--;
+        m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.getCurrBuffSize()-1];
+        //m_emulnet.currbuffsize--;
+        m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
         
         queue->enqueue(tmp, sz);
         
@@ -194,8 +197,10 @@ int EmulNet::ENcleanup() {
 
 	FILE* file = fopen("msgcount.log", "w+");
 
-	while(m_emulnet.currbuffsize > 0) {
-		free(m_emulnet.buff[--m_emulnet.currbuffsize]);
+	while(m_emulnet.getCurrBuffSize() > 0) {
+		//free(m_emulnet.buff[--m_emulnet.currbuffsize]);
+        m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
+        free(m_emulnet.buff[m_emulnet.getCurrBuffSize()]);
 	}
 
 	for ( i = 1; i <= m_par->EN_GPSZ; i++ ) {

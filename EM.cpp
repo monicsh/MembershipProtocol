@@ -39,7 +39,7 @@ void EM::setNextId(int nextid) {
     this->nextid = nextid;
 }
 
-void EM::settCurrBuffSize(int currbuffsize) {
+void EM::setCurrBuffSize(int currbuffsize) {
     this->currbuffsize = currbuffsize;
 }
 
