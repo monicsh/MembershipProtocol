@@ -105,7 +105,6 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 
 	//m_emulnet.buff[m_emulnet.currbuffsize++] = em;
     m_emulnet.setBuffer(m_emulnet.getCurrBuffSize(), em);
-    //m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()+1);
     m_emulnet.incrementCurrBuffSize();
 
 	int src = *(int *)(myaddr->m_addr);
@@ -167,7 +166,6 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
         memcpy(tmp, (char *)(emsg+1), sz);
         
         m_emulnet.setBuffer(i, m_emulnet.getBuffer(m_emulnet.getCurrBuffSize()-1));
-        //m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
         m_emulnet.decrementCurrBuffSize();
 
         queue->enqueue(tmp, sz);
@@ -201,7 +199,6 @@ int EmulNet::ENcleanup() {
 
 	while(m_emulnet.getCurrBuffSize() > 0) {
 		//free(m_emulnet.buff[--m_emulnet.currbuffsize]);
-        //m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
         m_emulnet.decrementCurrBuffSize();
         free(m_emulnet.getBuffer(m_emulnet.getCurrBuffSize()));
 	}
