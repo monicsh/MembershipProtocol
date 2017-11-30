@@ -44,6 +44,8 @@ public:
     en_msg * getBuffer(int buffsize);
     void setNextId(int nextid);
     void setCurrBuffSize(int currbuffsize);
+    void decrementCurrBuffSize();
+    void incrementCurrBuffSize();
     void setBuffer(int buffsize, en_msg * buff);
     virtual ~EM();
 };

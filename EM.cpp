@@ -47,6 +47,14 @@ void EM::setCurrBuffSize(int currbuffsize) {
     this->currbuffsize = currbuffsize;
 }
 
+void EM::decrementCurrBuffSize(){
+    this->currbuffsize--;
+}
+
+void EM::incrementCurrBuffSize(){
+    this->currbuffsize++;
+}
+
 void EM::setBuffer(int buffsize , en_msg * buff){
     this->buff[buffsize] = buff;
 }
