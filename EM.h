@@ -35,7 +35,6 @@ private:
     int currbuffsize;
     en_msg* buff[ENBUFFSIZE];
 
-//public: // TODO make this private once emulnet is understood
 public:
     EM& operator = (EM &anotherEM);
     void incrementNextId();

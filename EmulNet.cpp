@@ -165,9 +165,7 @@ int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, in
         tmp = (char *) malloc(sz * sizeof(char));
         memcpy(tmp, (char *)(emsg+1), sz);
         
-        //m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.getCurrBuffSize()-1];
         m_emulnet.setBuffer(i, m_emulnet.getBuffer(m_emulnet.getCurrBuffSize()-1));
-        //m_emulnet.currbuffsize--;
         m_emulnet.setCurrBuffSize(m_emulnet.getCurrBuffSize()-1);
         
         queue->enqueue(tmp, sz);
