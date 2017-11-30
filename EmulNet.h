@@ -13,63 +13,11 @@
 
 #include "stdincludes.h"
 #include "Params.h"
-#include "Member.h"
+#include "Address.h"
+#include "IMessageQueue.h"
+#include "EM.h"
 
-using namespace std;
 
-/**
- * Struct Name: en_msg
- */
-typedef struct en_msg {
-	// Number of bytes after the class
-	int size;
-	// Source node
-	Address from;
-	// Destination node
-	Address to;
-}en_msg;
-
-/**
- * Class Name: EM
- */
-class EM {
-public:
-	int nextid;
-	int currbuffsize;
-	int firsteltindex;
-	en_msg* buff[ENBUFFSIZE];
-	EM() {}
-	EM& operator = (EM &anotherEM) {
-		this->nextid = anotherEM.getNextId();
-		this->currbuffsize = anotherEM.getCurrBuffSize();
-		this->firsteltindex = anotherEM.getFirstEltIndex();
-		int i = this->currbuffsize;
-		while (i > 0) {
-			this->buff[i] = anotherEM.buff[i];
-			i--;
-		}
-		return *this;
-	}
-	int getNextId() {
-		return nextid;
-	}
-	int getCurrBuffSize() {
-		return currbuffsize;
-	}
-	int getFirstEltIndex() {
-		return firsteltindex;
-	}
-	void setNextId(int nextid) {
-		this->nextid = nextid;
-	}
-	void settCurrBuffSize(int currbuffsize) {
-		this->currbuffsize = currbuffsize;
-	}
-	void setFirstEltIndex(int firsteltindex) {
-		this->firsteltindex = firsteltindex;
-	}
-	virtual ~EM() {}
-};
 
 /**
  * CLASS NAME: EmulNet
@@ -79,11 +27,11 @@ public:
 class EmulNet
 { 	
 private:
-	Params* par;
-	int sent_msgs[MAX_NODES + 1][MAX_TIME];
-	int recv_msgs[MAX_NODES + 1][MAX_TIME];
-	int enInited;
-	EM emulnet;
+	Params* m_par;
+	int m_sent_msgs[MAX_NODES + 1][MAX_TIME];
+	int m_recv_msgs[MAX_NODES + 1][MAX_TIME];
+	int m_enInited;
+	EM m_emulnet;
 public:
  	EmulNet(Params *p);
  	EmulNet(EmulNet &anotherEmulNet);
@@ -92,7 +40,7 @@ public:
 	void *ENinit(Address *myaddr, short port);
 	int ENsend(Address *myaddr, Address *toaddr, string data);
 	int ENsend(Address *myaddr, Address *toaddr, char *data, int size);
-	int ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct timeval *t, int times, void *queue);
+    int ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, int times);
 	int ENcleanup();
 };
 

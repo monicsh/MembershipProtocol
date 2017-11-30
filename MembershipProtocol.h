@@ -13,7 +13,7 @@
 #include "Params.h"
 #include "Member.h"
 #include "EmulNet.h"
-#include "Queue.h"
+#include "IMessageQueue.h"
 
 
 /**
@@ -52,18 +52,21 @@ typedef struct MessageHdr {
  *
  * DESCRIPTION: Class implementing Membership protocol functionalities for failure detection
  */
-class MP1Node {
+class MembershipProtocol {
 private:
-	EmulNet *emulNet;
-	Log *log;
-	Params *par;
-	Member *memberNode;
+	EmulNet *m_emulNet;
+	Log *m_log;
+	Params *m_par;
+	Member *m_memberNode;
 	char NULLADDR[6];
+    IMessageQueue* m_queue;
 
 public:
-	MP1Node(Member *, Params *, EmulNet *, Log *, Address *);
+    virtual ~MembershipProtocol();
+	MembershipProtocol(Member *, Params *, EmulNet *, Log *, Address *, IMessageQueue* queue);
+    
 	Member * getMemberNode() {
-		return memberNode;
+		return m_memberNode;
 	}
 	int recvLoop();
 	static int enqueueWrapper(void *env, char *buff, int size);
@@ -87,7 +90,6 @@ public:
 	void printAddress(Address *addr);
 	void printMemberList();
 	void checkFailure();
-	virtual ~MP1Node();
 	void sendLeaveMessage(Address* toNode, int addId, short addPort, MsgTypes msgType);
 	
 	static std::string AddressToString(MemberListEntry& member)

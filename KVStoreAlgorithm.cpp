@@ -3,9 +3,9 @@
  *
  * DESCRIPTION: MP2Node class definition
  **********************************/
-#include "MP2Node.h"
+#include "KVStoreAlgorithm.h"
 
-ReplicaType MP2Node::ConvertToReplicaType(string replicaTypeString)
+ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
 {
     if (std::stoi(replicaTypeString) == 1) {
         return SECONDARY;
@@ -19,17 +19,19 @@ ReplicaType MP2Node::ConvertToReplicaType(string replicaTypeString)
 /**
  * constructor
  */
-MP2Node::MP2Node(
+KVStoreAlgorithm::KVStoreAlgorithm(
     Member *memberNode,
     Params *par,
     EmulNet * emulNet,
     Log * log,
-    Address * address)
+    Address * address,
+    IMessageQueue * queue )
 {
     this->memberNode = memberNode;
     this->par = par;
     this->emulNet = emulNet;
     this->log = log;
+    this->m_queue = queue;
 
     ht = new HashTable();
 
@@ -39,7 +41,7 @@ MP2Node::MP2Node(
 /**
  * Destructor
  */
-MP2Node::~MP2Node() {
+KVStoreAlgorithm::~KVStoreAlgorithm() {
     delete ht;
     delete memberNode;
 }
@@ -53,7 +55,7 @@ MP2Node::~MP2Node() {
  *                              2) Constructs the ring based on the membership list
  *                              3) Calls the Stabilization Protocol
  */
-void MP2Node::updateRing()
+void KVStoreAlgorithm::updateRing()
 {
     /*
      * Step 1. Get the current membership list from Membership Protocol (mp1)
@@ -101,7 +103,7 @@ void MP2Node::updateRing()
  * return : true if  state changed
  *			false on state unchanged
  */
-bool MP2Node::isCurrentStateChange(vector<Node> curMemList, vector<Node> ring){
+bool KVStoreAlgorithm::isCurrentStateChange(vector<Node> curMemList, vector<Node> ring){
 
     size_t  length_of_ring = ring.size();
     size_t  length_of_memList = curMemList.size();
@@ -132,7 +134,7 @@ bool MP2Node::isCurrentStateChange(vector<Node> curMemList, vector<Node> ring){
 *                               a) Address of the node
 *                               b) Hash code obtained by consistent hashing of the Address
  */
-vector<Node> MP2Node::getMembershipList()
+vector<Node> KVStoreAlgorithm::getMembershipList()
 {
     vector<Node> curMemList;
 
@@ -142,8 +144,8 @@ vector<Node> MP2Node::getMembershipList()
         short port = this->memberNode->memberList.at(i).getport();
 
         Address addressOfThisMember;
-        memcpy(&addressOfThisMember.addr[0], &id, sizeof(int));
-        memcpy(&addressOfThisMember.addr[4], &port, sizeof(short));
+        memcpy(&addressOfThisMember.m_addr[0], &id, sizeof(int));
+        memcpy(&addressOfThisMember.m_addr[4], &port, sizeof(short));
 
         curMemList.emplace_back(Node(addressOfThisMember));
     }
@@ -159,7 +161,7 @@ vector<Node> MP2Node::getMembershipList()
  * RETURNS:
  * size_t position on the ring
  */
-size_t MP2Node::hashFunction(string key) {
+size_t KVStoreAlgorithm::hashFunction(string key) {
     std::hash<string> hashFunc;
     size_t ret = hashFunc(key);
     return ret%RING_SIZE;
@@ -174,7 +176,7 @@ size_t MP2Node::hashFunction(string key) {
  *                              2) Finds the replicas of this key
  *                              3) Sends a message to the replica
  */
-void MP2Node::clientCreate(string key, string value) {
+void KVStoreAlgorithm::clientCreate(string key, string value) {
 
     // 1. Constructs the message	(transID::fromAddr::CREATE::key::value::ReplicaType)
     // 2. Finds the replicas of this key
@@ -187,17 +189,18 @@ void MP2Node::clientCreate(string key, string value) {
 	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
 		Address toaddr = it->nodeAddress;
 		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-
+		
 		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
 
 	}
         //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
+	//4. Make entry in the quorum
 	this->quorum[g_transID].transMsgType = msgType;
 	this->quorum[g_transID].reqTime = this->par->getcurrtime();
 	this->quorum[g_transID].reqKey = key;
-
+	
+	//5. Increment transition id
 	g_transID++;
-
 
 }
 
@@ -210,7 +213,7 @@ void MP2Node::clientCreate(string key, string value) {
  *                              2) Finds the replicas of this key
  *                              3) Sends a message to the replica
  */
-void MP2Node::clientRead(string key){
+void KVStoreAlgorithm::clientRead(string key){
     // 1. Finds the replicas of this key
     vector<Node> replicaNodes = findNodes(key);
 
@@ -243,7 +246,7 @@ void MP2Node::clientRead(string key){
  *                              2) Finds the replicas of this key
  *                              3) Sends a message to the replica
  */
-void MP2Node::clientUpdate(string key, string value){
+void KVStoreAlgorithm::clientUpdate(string key, string value){
     // 1. Constructs the message	(transID::fromAddr::UPDATE::key::value::ReplicaType)
     // 2. Finds the replicas of this key
     vector<Node> replicaNodes = findNodes(key);
@@ -280,7 +283,7 @@ void MP2Node::clientUpdate(string key, string value){
  *                              2) Finds the replicas of this key
  *                              3) Sends a message to the replica
  */
-void MP2Node::clientDelete(string key){
+void KVStoreAlgorithm::clientDelete(string key){
     // 1. Finds the replicas of this key
     vector<Node> replicaNodes = findNodes(key);
 
@@ -306,7 +309,7 @@ void MP2Node::clientDelete(string key){
 /**
  * coordinator dispatches messages to corresponding nodes
  */
-void MP2Node::dispatchMessages(Message message){
+void KVStoreAlgorithm::dispatchMessages(Message message){
 
 }
 
@@ -319,7 +322,7 @@ void MP2Node::dispatchMessages(Message message){
  *                              1) Inserts key value into the local hash table
  *                              2) Return true or false based on success or failure
  */
-bool MP2Node::createKeyValue(string key, string value, ReplicaType replica) {
+bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType replica) {
     /*
      * Implement this
      */
@@ -337,7 +340,7 @@ bool MP2Node::createKeyValue(string key, string value, ReplicaType replica) {
  *                          1) Read key from local hash table
  *                          2) Return value
  */
-string MP2Node::readKey(string key) {
+string KVStoreAlgorithm::readKey(string key) {
     // Read key from local hash table and return value
 	
 	// parse and retur KeyValue from input string -> KeyValue:time:replicaType
@@ -363,7 +366,7 @@ string MP2Node::readKey(string key) {
  *                              1) Update the key to the new value in the local hash table
  *                              2) Return true or false based on success or failure
  */
-bool MP2Node::updateKeyValue(string key, string value, ReplicaType replica) {
+bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
     // Update key in local hash table and return true or false
     Entry entry = Entry(value, par->getcurrtime(), replica);
     string keyValue = entry.convertToString();
@@ -379,12 +382,12 @@ bool MP2Node::updateKeyValue(string key, string value, ReplicaType replica) {
  *                              1) Delete the key from the local hash table
  *                              2) Return true or false based on success or failure
  */
-bool MP2Node::deletekey(string key) {
+bool KVStoreAlgorithm::deletekey(string key) {
     // Delete the key from the local hash table
     return this->ht->deleteKey(key);
 }
 
-vector<string> MP2Node::ParseMessageIntoTokens(const string& message, size_t dataSize)
+vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, size_t dataSize)
 {
 	const string delimiter = "::";
 	string token;
@@ -414,7 +417,7 @@ vector<string> MP2Node::ParseMessageIntoTokens(const string& message, size_t dat
  *                              1) Pops messages from the queue
  *                              2) Handles the messages according to message types
  */
-void MP2Node::checkMessages() {
+void KVStoreAlgorithm::checkMessages() {
     /*
      * Implement this. Parts of it are already implemented
      */
@@ -426,14 +429,14 @@ void MP2Node::checkMessages() {
      */
 
     // dequeue all messages and handle them
-    while ( !memberNode->mp2q.empty() ) {
+    while ( !m_queue->empty() ) {
         /*
          * Pop a message from the queue
          */
-        data = (char *)memberNode->mp2q.front().elt;
-        size = memberNode->mp2q.front().size;
-        memberNode->mp2q.pop();
-
+        RawMessage item = m_queue->dequeue();
+        data = (char *) item.elt;
+        size = item.size;
+        
         /*
          * Handle the message types here
          */
@@ -660,7 +663,7 @@ void MP2Node::checkMessages() {
  * DESCRIPTION: Find the replicas of the given keyfunction
  *                              This function is responsible for finding the replicas of a key
  */
-vector<Node> MP2Node::findNodes(string key) {
+vector<Node> KVStoreAlgorithm::findNodes(string key) {
     size_t pos = hashFunction(key);
     vector<Node> addr_vec;
     if (ring.size() >= 3) {
@@ -691,25 +694,15 @@ vector<Node> MP2Node::findNodes(string key) {
  *
  * DESCRIPTION: Receive messages from EmulNet and push into the queue (mp2q)
  */
-bool MP2Node::recvLoop() {
+bool KVStoreAlgorithm::recvLoop() {
     if ( memberNode->bFailed ) {
         return false;
     }
     else {
         bool flag;
-        flag =  emulNet->ENrecv(&(memberNode->addr), this->enqueueWrapper, NULL, 1, &(memberNode->mp2q));
+        flag =  emulNet->ENrecv(&(memberNode->addr), this->m_queue, NULL, 1);
         return flag;
     }
-}
-
-/**
- * FUNCTION NAME: enqueueWrapper
- *
- * DESCRIPTION: Enqueue the message from Emulnet into the queue of MP2Node
- */
-int MP2Node::enqueueWrapper(void *env, char *buff, int size) {
-    Queue q;
-    return q.enqueue((queue<q_elt> *)env, (void *)buff, size);
 }
 
 /**
@@ -721,7 +714,7 @@ int MP2Node::enqueueWrapper(void *env, char *buff, int size) {
  *				1) Ensures that there are three "CORRECT" replicas of all the keys in spite of failures and joins
  *				Note:- "CORRECT" replicas implies that every key is replicated in its two neighboring nodes in the ring
  */
-void MP2Node::stabilizationProtocol()
+void KVStoreAlgorithm::stabilizationProtocol()
 {
 	
 	// 1. find out my postition in the ring

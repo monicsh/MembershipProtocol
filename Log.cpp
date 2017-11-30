@@ -10,24 +10,24 @@
  * Constructor
  */
 Log::Log(Params *p) {
-	par = p;
-	firstTime = false;
+	m_par = p;
+	m_firstTime = false;
 }
 
 /**
  * Copy constructor
  */
 Log::Log(const Log &anotherLog) {
-	this->par = anotherLog.par;
-	this->firstTime = anotherLog.firstTime;
+	this->m_par = anotherLog.m_par;
+	this->m_firstTime = anotherLog.m_firstTime;
 }
 
 /**
  * Assignment Operator Overloading
  */
 Log& Log::operator = (const Log& anotherLog) {
-	this->par = anotherLog.par;
-	this->firstTime = anotherLog.firstTime;
+	this->m_par = anotherLog.m_par;
+	this->m_firstTime = anotherLog.m_firstTime;
 	return *this;
 }
 
@@ -70,13 +70,13 @@ void Log::LOG(Address *addr, const char * str, ...) {
 	}
 	else 
 
-	sprintf(stdstring, "%d.%d.%d.%d:%d ", addr->addr[0], addr->addr[1], addr->addr[2], addr->addr[3], *(short *)&addr->addr[4]);
+	sprintf(stdstring, "%s ", addr->getAddressLogFormatted().c_str());
 
 	va_start(vararglist, str);
 	vsprintf(buffer, str, vararglist);
 	va_end(vararglist);
 
-	if (!firstTime) {
+	if (!m_firstTime) {
 		int magicNumber = 0;
 		string magic = MAGIC_NUMBER;
 		int len = magic.length();
@@ -84,19 +84,19 @@ void Log::LOG(Address *addr, const char * str, ...) {
 			magicNumber += (int)magic.at(i);
 		}
 		fprintf(fp, "%x\n", magicNumber);
-		firstTime = true;
+		m_firstTime = true;
 	}
 
 	if(memcmp(buffer, "#STATSLOG#", 10)==0){
 		fprintf(fp2, "\n %s", stdstring);
-		fprintf(fp2, "[%d] ", par->getcurrtime());
+		fprintf(fp2, "[%d] ", m_par->getcurrtime());
 
-		fprintf(fp2, buffer);
+        fprintf(fp2, "%s", buffer);
 	}
 	else{
 		fprintf(fp, "\n %s", stdstring);
-		fprintf(fp, "[%d] ", par->getcurrtime());
-		fprintf(fp, buffer);
+		fprintf(fp, "[%d] ", m_par->getcurrtime());
+        fprintf(fp, "%s", buffer);
 
 	}
 
@@ -115,7 +115,7 @@ void Log::LOG(Address *addr, const char * str, ...) {
  */
 void Log::logNodeAdd(Address *thisNode, Address *addedAddr) {
 	static char stdstring[100];
-	sprintf(stdstring, "Node %d.%d.%d.%d:%d joined at time %d", addedAddr->addr[0], addedAddr->addr[1], addedAddr->addr[2], addedAddr->addr[3], *(short *)&addedAddr->addr[4], par->getcurrtime());
+	sprintf(stdstring, "Node %s joined at time %d", addedAddr->getAddressLogFormatted().c_str(), m_par->getcurrtime());
     LOG(thisNode, stdstring);
 }
 
@@ -126,7 +126,7 @@ void Log::logNodeAdd(Address *thisNode, Address *addedAddr) {
  */
 void Log::logNodeRemove(Address *thisNode, Address *removedAddr) {
 	static char stdstring[30];
-	sprintf(stdstring, "Node %d.%d.%d.%d:%d removed at time %d", removedAddr->addr[0], removedAddr->addr[1], removedAddr->addr[2], removedAddr->addr[3], *(short *)&removedAddr->addr[4], par->getcurrtime());
+	sprintf(stdstring, "Node %s removed at time %d", removedAddr->getAddressLogFormatted().c_str(), m_par->getcurrtime());
     LOG(thisNode, stdstring);
 }
 
@@ -142,7 +142,7 @@ void Log::logCreateSuccess(Address * address, bool isCoordinator, int transID, s
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: create success at time %d, transID=%d, key=%s, value=%s", str.c_str(), par->getcurrtime(), transID, key.c_str(), value.c_str());
+	sprintf(stdstring, "%s: create success at time %d, transID=%d, key=%s, value=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str(), value.c_str());
     LOG(address, stdstring);
 }
 
@@ -158,7 +158,7 @@ void Log::logReadSuccess(Address * address, bool isCoordinator, int transID, str
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: read success at time %d, transID=%d, key=%s, value=%s", str.c_str(), par->getcurrtime(), transID, key.c_str(), value.c_str());
+	sprintf(stdstring, "%s: read success at time %d, transID=%d, key=%s, value=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str(), value.c_str());
     LOG(address, stdstring);
 }
 
@@ -174,7 +174,7 @@ void Log::logUpdateSuccess(Address * address, bool isCoordinator, int transID, s
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: update success at time %d, transID=%d, key=%s, value=%s", str.c_str(), par->getcurrtime(), transID, key.c_str(), newValue.c_str());
+	sprintf(stdstring, "%s: update success at time %d, transID=%d, key=%s, value=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str(), newValue.c_str());
     LOG(address, stdstring);
 }
 
@@ -190,7 +190,7 @@ void Log::logDeleteSuccess(Address * address, bool isCoordinator, int transID, s
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: delete success at time %d, transID=%d, key=%s", str.c_str(), par->getcurrtime(), transID, key.c_str());
+	sprintf(stdstring, "%s: delete success at time %d, transID=%d, key=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str());
     LOG(address, stdstring);
 }
 
@@ -206,7 +206,7 @@ void Log::logCreateFail(Address * address, bool isCoordinator, int transID, stri
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: create fail at time %d, transID=%d, key=%s, value=%s", str.c_str(), par->getcurrtime(), transID, key.c_str(), value.c_str());
+	sprintf(stdstring, "%s: create fail at time %d, transID=%d, key=%s, value=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str(), value.c_str());
     LOG(address, stdstring);
 }
 
@@ -223,7 +223,7 @@ void Log::logReadFail(Address * address, bool isCoordinator, int transID, string
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: read fail at time %d, transID=%d, key=%s", str.c_str(), par->getcurrtime(), transID, key.c_str());
+	sprintf(stdstring, "%s: read fail at time %d, transID=%d, key=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str());
     LOG(address, stdstring);
 }
 
@@ -239,7 +239,7 @@ void Log::logUpdateFail(Address * address, bool isCoordinator, int transID, stri
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: update fail at time %d, transID=%d, key=%s, value=%s", str.c_str(), par->getcurrtime(), transID, key.c_str(), newValue.c_str());
+	sprintf(stdstring, "%s: update fail at time %d, transID=%d, key=%s, value=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str(), newValue.c_str());
     LOG(address, stdstring);
 }
 
@@ -255,6 +255,6 @@ void Log::logDeleteFail(Address * address, bool isCoordinator, int transID, stri
 		str = "coordinator";
 	else
 		str = "server";
-	sprintf(stdstring, "%s: delete fail at time %d, transID=%d, key=%s", str.c_str(), par->getcurrtime(), transID, key.c_str());
+	sprintf(stdstring, "%s: delete fail at time %d, transID=%d, key=%s", str.c_str(), m_par->getcurrtime(), transID, key.c_str());
     LOG(address, stdstring);
 }

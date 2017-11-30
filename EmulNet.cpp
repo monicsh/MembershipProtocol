@@ -6,6 +6,7 @@
 
 #include "EmulNet.h"
 
+
 /**
  * Constructor
  */
@@ -13,14 +14,14 @@ EmulNet::EmulNet(Params *p)
 {
 	//trace.funcEntry("EmulNet::EmulNet");
 	int i,j;
-	par = p;
-	emulnet.setNextId(1);
-	emulnet.settCurrBuffSize(0);
-	enInited=0;
+	m_par = p;
+	m_emulnet.setNextId(1);
+	m_emulnet.settCurrBuffSize(0);
+	m_enInited=0;
 	for ( i = 0; i < MAX_NODES; i++ ) {
 		for ( j = 0; j < MAX_TIME; j++ ) {
-			sent_msgs[i][j] = 0;
-			recv_msgs[i][j] = 0;
+			m_sent_msgs[i][j] = 0;
+			m_recv_msgs[i][j] = 0;
 		}
 	}
 	//trace.funcExit("EmulNet::EmulNet", SUCCESS);
@@ -31,15 +32,15 @@ EmulNet::EmulNet(Params *p)
  */
 EmulNet::EmulNet(EmulNet &anotherEmulNet) {
 	int i, j;
-	this->par = anotherEmulNet.par;
-	this->enInited = anotherEmulNet.enInited;
+	this->m_par = anotherEmulNet.m_par;
+	this->m_enInited = anotherEmulNet.m_enInited;
 	for ( i = 0; i < MAX_NODES; i++ ) {
 		for ( j = 0; j < MAX_TIME; j++ ) {
-			this->sent_msgs[i][j] = anotherEmulNet.sent_msgs[i][j];
-			this->recv_msgs[i][j] = anotherEmulNet.recv_msgs[i][j];
+			this->m_sent_msgs[i][j] = anotherEmulNet.m_sent_msgs[i][j];
+			this->m_recv_msgs[i][j] = anotherEmulNet.m_recv_msgs[i][j];
 		}
 	}
-	this->emulnet = anotherEmulNet.emulnet;
+	this->m_emulnet = anotherEmulNet.m_emulnet;
 }
 
 /**
@@ -47,15 +48,15 @@ EmulNet::EmulNet(EmulNet &anotherEmulNet) {
  */
 EmulNet& EmulNet::operator =(EmulNet &anotherEmulNet) {
 	int i, j;
-	this->par = anotherEmulNet.par;
-	this->enInited = anotherEmulNet.enInited;
+	this->m_par = anotherEmulNet.m_par;
+	this->m_enInited = anotherEmulNet.m_enInited;
 	for ( i = 0; i < MAX_NODES; i++ ) {
 		for ( j = 0; j < MAX_TIME; j++ ) {
-			this->sent_msgs[i][j] = anotherEmulNet.sent_msgs[i][j];
-			this->recv_msgs[i][j] = anotherEmulNet.recv_msgs[i][j];
+			this->m_sent_msgs[i][j] = anotherEmulNet.m_sent_msgs[i][j];
+			this->m_recv_msgs[i][j] = anotherEmulNet.m_recv_msgs[i][j];
 		}
 	}
-	this->emulnet = anotherEmulNet.emulnet;
+	this->m_emulnet = anotherEmulNet.m_emulnet;
 	return *this;
 }
 
@@ -71,8 +72,10 @@ EmulNet::~EmulNet() {}
  */
 void *EmulNet::ENinit(Address *myaddr, short port) {
 	// Initialize data structures for this member
-	*(int *)(myaddr->addr) = emulnet.nextid++;
-    *(short *)(&myaddr->addr[4]) = 0;
+
+    *(int *)(myaddr->m_addr) = m_emulnet.getNextId();
+    m_emulnet.incrementNextId();
+    *(short *)(&myaddr->m_addr[4]) = 0;
 	return myaddr;
 }
 
@@ -89,29 +92,29 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 	static char temp[2048];
 	int sendmsg = rand() % 100;
 
-	if( (emulnet.currbuffsize >= ENBUFFSIZE) || (size + (int)sizeof(en_msg) >= par->MAX_MSG_SIZE) || (par->dropmsg && sendmsg < (int) (par->MSG_DROP_PROB * 100)) ) {
+	if( (m_emulnet.currbuffsize >= ENBUFFSIZE) || (size + (int)sizeof(en_msg) >= m_par->MAX_MSG_SIZE) || (m_par->dropmsg && sendmsg < (int) (m_par->MSG_DROP_PROB * 100)) ) {
 		return 0;
 	}
 
 	em = (en_msg *)malloc(sizeof(en_msg) + size);
 	em->size = size;
 
-	memcpy(&(em->from.addr), &(myaddr->addr), sizeof(em->from.addr));
-	memcpy(&(em->to.addr), &(toaddr->addr), sizeof(em->from.addr));
+	memcpy(&(em->from.m_addr), &(myaddr->m_addr), sizeof(em->from.m_addr));
+	memcpy(&(em->to.m_addr), &(toaddr->m_addr), sizeof(em->from.m_addr));
 	memcpy(em + 1, data, size);
 
-	emulnet.buff[emulnet.currbuffsize++] = em;
+	m_emulnet.buff[m_emulnet.currbuffsize++] = em;
 
-	int src = *(int *)(myaddr->addr);
-	int time = par->getcurrtime();
+	int src = *(int *)(myaddr->m_addr);
+	int time = m_par->getcurrtime();
 
 	assert(src <= MAX_NODES);
 	assert(time < MAX_TIME);
 
-	sent_msgs[src][time]++;
+	m_sent_msgs[src][time]++;
 
 	#ifdef DEBUGLOG
-		sprintf(temp, "Sending 4+%d B msg type %d to %d.%d.%d.%d:%d ", size-4, *(int *)data, toaddr->addr[0], toaddr->addr[1], toaddr->addr[2], toaddr->addr[3], *(short *)&toaddr->addr[4]);
+		sprintf(temp, "Sending 4+%d B msg type %d to %s ", size-4, *(int *)data, toaddr->getAddressLogFormatted().c_str());
 	#endif
 
 	return size;
@@ -141,39 +144,42 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, string data) {
  * RETURN:
  * 0
  */
-int EmulNet::ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct timeval *t, int times, void *queue){
-	// times is always assumed to be 1
-	int i;
-	char* tmp;
-	int sz;
-	en_msg *emsg;
+int EmulNet::ENrecv(Address *myaddr, IMessageQueue *queue, struct timeval *t, int times){
+    // times is always assumed to be 1
+    int i;
+    char* tmp;
+    int sz;
+    en_msg *emsg;
+    
+    for( i = m_emulnet.currbuffsize - 1; i >= 0; i-- ) {
+        emsg = m_emulnet.buff[i];
+        
+        if ( 0 != strcmp(emsg->to.m_addr, myaddr->m_addr) ) {
+            continue;
+        }
+        
+        sz = emsg->size;
+        tmp = (char *) malloc(sz * sizeof(char));
+        memcpy(tmp, (char *)(emsg+1), sz);
+        
+        m_emulnet.buff[i] = m_emulnet.buff[m_emulnet.currbuffsize-1];
+        m_emulnet.currbuffsize--;
+        
+        queue->enqueue(tmp, sz);
+        
+        free(emsg);
+        
+        int dst = *(int *)(myaddr->m_addr);
+        int time = m_par->getcurrtime();
+        
+        assert(dst <= MAX_NODES);
+        assert(time < MAX_TIME);
+        
+        m_recv_msgs[dst][time]++;
 
-	for( i = emulnet.currbuffsize - 1; i >= 0; i-- ) {
-		emsg = emulnet.buff[i];
-
-		if ( 0 == strcmp(emsg->to.addr, myaddr->addr) ) {
-			sz = emsg->size;
-			tmp = (char *) malloc(sz * sizeof(char));
-			memcpy(tmp, (char *)(emsg+1), sz);
-
-			emulnet.buff[i] = emulnet.buff[emulnet.currbuffsize-1];
-			emulnet.currbuffsize--;
-
-			(*enq)(queue, (char *)tmp, sz);
-
-			free(emsg);
-
-			int dst = *(int *)(myaddr->addr);
-			int time = par->getcurrtime();
-
-			assert(dst <= MAX_NODES);
-			assert(time < MAX_TIME);
-
-			recv_msgs[dst][time]++;
-		}
-	}
-
-	return 0;
+    }
+    
+    return 0;
 }
 
 /**
@@ -182,33 +188,33 @@ int EmulNet::ENrecv(Address *myaddr, int (* enq)(void *, char *, int), struct ti
  * DESCRIPTION: Cleanup the EmulNet. Called exactly once at the end of the program.
  */
 int EmulNet::ENcleanup() {
-	emulnet.nextid=0;
+	m_emulnet.resetNextId();
 	int i, j;
 	int sent_total, recv_total;
 
 	FILE* file = fopen("msgcount.log", "w+");
 
-	while(emulnet.currbuffsize > 0) {
-		free(emulnet.buff[--emulnet.currbuffsize]);
+	while(m_emulnet.currbuffsize > 0) {
+		free(m_emulnet.buff[--m_emulnet.currbuffsize]);
 	}
 
-	for ( i = 1; i <= par->EN_GPSZ; i++ ) {
+	for ( i = 1; i <= m_par->EN_GPSZ; i++ ) {
 		fprintf(file, "node %3d ", i);
 		sent_total = 0;
 		recv_total = 0;
 
-		for (j = 0; j < par->getcurrtime(); j++) {
+		for (j = 0; j < m_par->getcurrtime(); j++) {
 
-			sent_total += sent_msgs[i][j];
-			recv_total += recv_msgs[i][j];
+			sent_total += m_sent_msgs[i][j];
+			recv_total += m_recv_msgs[i][j];
 			if (i != 67) {
-				fprintf(file, " (%4d, %4d)", sent_msgs[i][j], recv_msgs[i][j]);
+				fprintf(file, " (%4d, %4d)", m_sent_msgs[i][j], m_recv_msgs[i][j]);
 				if (j % 10 == 9) {
 					fprintf(file, "\n         ");
 				}
 			}
 			else {
-				fprintf(file, "special %4d %4d %4d\n", j, sent_msgs[i][j], recv_msgs[i][j]);
+				fprintf(file, "special %4d %4d %4d\n", j, m_sent_msgs[i][j], m_recv_msgs[i][j]);
 			}
 		}
 		fprintf(file, "\n");
