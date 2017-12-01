@@ -115,7 +115,7 @@ int EmulNet::ENsend(Address *myaddr, Address *toaddr, char *data, int size) {
 
 	m_sent_msgs[src][time]++;
 
-	#ifdef DEBUGLOG
+	#ifdef DEBUGLOG 
 		sprintf(temp, "Sending 4+%d B msg type %d to %s ", size-4, *(int *)data, toaddr->getAddressLogFormatted().c_str());
 	#endif
 
