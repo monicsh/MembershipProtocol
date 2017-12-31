@@ -30,9 +30,6 @@ public:
 	bool update(string key, string newValue);
 	bool deleteKey(string key);
 	bool isEmpty();
-	unsigned long currentSize();
-	void clear();
-	unsigned long count(string key);
 	virtual ~HashTable();
 };
 

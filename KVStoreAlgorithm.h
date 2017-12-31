@@ -116,13 +116,13 @@ public:
 	// find the addresses of nodes that are responsible for a key
 	vector<Node> findNodes(string key);
 
-	// server
+	// server side CRUD APIs
 	bool createKeyValue(string key, string value, ReplicaType replica);
 	string readKey(string key);
 	bool updateKeyValue(string key, string value, ReplicaType replica);
 	bool deletekey(string key);
 
-        ReplicaType ConvertToReplicaType(string replicaTypeString);
+    ReplicaType ConvertToReplicaType(string replicaTypeString);
     
 	// stabilization protocol - handle multiple failures
 	void stabilizationProtocol();

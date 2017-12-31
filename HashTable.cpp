@@ -109,36 +109,4 @@ bool HashTable::isEmpty() {
 	return hashTable.empty();
 }
 
-/**
- * FUNCTION NAME: currentSize
- *
- * DESCRIPTION: Returns the current size of the hash table
- *
- * RETURNS:
- * size of the table as unit
- */
-unsigned long HashTable::currentSize() {
-	return (unsigned  long)hashTable.size();
-}
-
-/**
- * FUNCTION NAME: clear
- *
- * DESCRIPTION: Clear all contents from the hash table
- */
-void HashTable::clear() {
-	hashTable.clear();
-}
-
-/**
- * FUNCTION NAME: count
- *
- * DESCRIPTION: Returns the count of the number of values for the passed in key
- *
- * RETURNS:
- * unsigned long count (Should be always 1)
- */
-unsigned long HashTable::count(string key) {
-	return (unsigned long) hashTable.count(key);
-}
 
