@@ -194,14 +194,17 @@ void KVStoreAlgorithm::clientCreate(string key, string value) {
 
 	}
         //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
-	//4. Make entry in the quorum
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-	
-	//5. Increment transition id
-	g_transID++;
 
+    updateQuorum(msgType, key);
+}
+
+void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
+    // add quorom counter = 0 for each sent READ message triplet sent above
+    this->quorum[g_transID].transMsgType = msgType;
+    this->quorum[g_transID].reqTime = this->par->getcurrtime();
+    this->quorum[g_transID].reqKey = key;
+
+    g_transID++;
 }
 
 /**
@@ -270,12 +273,7 @@ void KVStoreAlgorithm::clientUpdate(string key, string value){
 
 	}
         //this->log->logUpdateSuccess(&memberNode->addr, true, g_transID, key, value);
-		
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-		
-	g_transID++;
+	updateQuorum(msgType, key);
 		
 }
 
@@ -302,11 +300,7 @@ void KVStoreAlgorithm::clientDelete(string key){
 		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
 	}
 	
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-	
-	g_transID++;
+	updateQuorum(msgType, key);
 
 }
 
