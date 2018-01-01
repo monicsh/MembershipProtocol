@@ -293,12 +293,7 @@ void KVStoreAlgorithm::clientDelete(string key){
     // 2. Send messages to the replicas
     MessageType msgType = DELETE;
     //if (replicaNodes.size() == 3){
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key);
-
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-	}
+	sendMessageToReplicas(replicaNodes, msgType, key);
 	
 	updateQuorum(msgType, key);
 
