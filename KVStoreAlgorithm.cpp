@@ -236,16 +236,16 @@ bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType repl
     return this->ht->create(key, entry.convertToString());
 }
 
+
 string KVStoreAlgorithm::readKey(string key) {
 	string valueTuple = ht->read(key);
-    if (!valueTuple.empty()) {
-            size_t pos = valueTuple.find(":");
-		
-		if (pos != std::string::npos) {
-			return valueTuple.substr(0, pos); // return first value
-		}
-    }
-	
+	if (valueTuple.empty()) return "";
+
+	size_t pos = valueTuple.find(":");
+	if (pos != std::string::npos) {
+		return valueTuple.substr(0, pos);
+	}
+
 	return "";
 }
 
