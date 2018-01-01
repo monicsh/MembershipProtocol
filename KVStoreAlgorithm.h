@@ -96,6 +96,8 @@ public:
 	vector<Node> getMembershipList();
 	size_t hashFunction(string key);
 
+    void updateQuorumRead(MessageType msgType, string key);
+
 	// client side CRUD APIs
 	void clientCreate(string key, string value);
 	void clientRead(string key);

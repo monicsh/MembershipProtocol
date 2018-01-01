@@ -226,17 +226,20 @@ void KVStoreAlgorithm::clientRead(string key){
         this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
 
     }
-	
-	// add quorom counter = 0 for each sent READ message triplet sent above
-	this->quorumRead[g_transID].transMsgType = msgType;
-	this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
-	this->quorumRead[g_transID].reqKey = key;
-	
-	
-	
-    g_transID++;
+
+    //updated Quorum
+    updateQuorumRead(msgType, key);
 }
 
+
+void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
+    // add quorom counter = 0 for each sent READ message triplet sent above
+    this->quorumRead[g_transID].transMsgType = msgType;
+    this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
+    this->quorumRead[g_transID].reqKey = key;
+
+    g_transID++;
+}
 /**
  * FUNCTION NAME: clientUpdate
  *
