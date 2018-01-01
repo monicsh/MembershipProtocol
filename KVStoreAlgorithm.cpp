@@ -167,142 +167,60 @@ size_t KVStoreAlgorithm::hashFunction(string key) {
     return ret%RING_SIZE;
 }
 
-/**
- * FUNCTION NAME: clientCreate
- *
- * DESCRIPTION: client side CREATE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
-void KVStoreAlgorithm::clientCreate(string key, string value) {
-
-    // 1. Constructs the message	(transID::fromAddr::CREATE::key::value::ReplicaType)
-    // 2. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 3. Sends a message to the replica
-	MessageType msgType = CREATE;
-	int replica =  0;
-	
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-		
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
-	}
-        //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
-	//4. Make entry in the quorum
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-	
-	//5. Increment transition id
-	g_transID++;
-
-}
-
-/**
- * FUNCTION NAME: clientRead
- *
- * DESCRIPTION: client side READ API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
-void KVStoreAlgorithm::clientRead(string key){
-    // 1. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 2. Send messages to the replicas
-    MessageType msgType = READ;
+void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
         Message msg = Message(g_transID, memberNode->addr, msgType, key);
 
         this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
     }
-	
-	// add quorom counter = 0 for each sent READ message triplet sent above
-	this->quorumRead[g_transID].transMsgType = msgType;
-	this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
-	this->quorumRead[g_transID].reqKey = key;
-	
-	
-	
+}
+
+void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value){
+    int replica =  0;
+    for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
+        Address toaddr = it->nodeAddress;
+        Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
+
+        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+    }
+}
+
+void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
+    // add quorom counter = 0 for each sent READ message triplet sent above
+    this->quorumRead[g_transID].transMsgType = msgType;
+    this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
+    this->quorumRead[g_transID].reqKey = key;
+
     g_transID++;
 }
 
-/**
- * FUNCTION NAME: clientUpdate
- *
- * DESCRIPTION: client side UPDATE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
-void KVStoreAlgorithm::clientUpdate(string key, string value){
-    // 1. Constructs the message	(transID::fromAddr::UPDATE::key::value::ReplicaType)
-    // 2. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-	
-    // 3. Sends a message to the replica
-    //if (replicaNodes.size() == 3){
-	MessageType msgType = UPDATE;
-	//ReplicaType replicaType = PRIMARY;
-	int replica =  0;
+void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
+    this->quorum[g_transID].transMsgType = msgType;
+    this->quorum[g_transID].reqTime = this->par->getcurrtime();
+    this->quorum[g_transID].reqKey = key;
 
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
-	}
-        //this->log->logUpdateSuccess(&memberNode->addr, true, g_transID, key, value);
-		
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-		
-	g_transID++;
-		
+    g_transID++;
 }
 
-/**
- * FUNCTION NAME: clientDelete
- *
- * DESCRIPTION: client side DELETE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
+void KVStoreAlgorithm::clientCreate(string key, string value) {
+    sendMessageToReplicas(findNodes(key), CREATE, key, value);
+    updateQuorum(CREATE, key);
+}
+
+void KVStoreAlgorithm::clientRead(string key){
+    sendMessageToReplicas(findNodes(key), READ, key);
+    updateQuorumRead(READ, key);
+}
+
+void KVStoreAlgorithm::clientUpdate(string key, string value){
+    sendMessageToReplicas(findNodes(key), UPDATE, key, value);
+	updateQuorum(UPDATE, key);
+}
+
 void KVStoreAlgorithm::clientDelete(string key){
-    // 1. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 2. Send messages to the replicas
-    MessageType msgType = DELETE;
-    //if (replicaNodes.size() == 3){
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key);
-
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-	}
-	
-	this->quorum[g_transID].transMsgType = msgType;
-	this->quorum[g_transID].reqTime = this->par->getcurrtime();
-	this->quorum[g_transID].reqKey = key;
-	
-	g_transID++;
-
+	sendMessageToReplicas(findNodes(key), DELETE, key);
+	updateQuorum(DELETE, key);
 }
 
 

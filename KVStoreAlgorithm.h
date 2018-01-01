@@ -96,8 +96,19 @@ public:
 	vector<Node> getMembershipList();
 	size_t hashFunction(string key);
 
+    void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
+    void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
+    void updateQuorumRead(MessageType msgType, string key);
+    void updateQuorum(MessageType msgType, string key);
 
-	// client side CRUD APIs
+    /**
+     * client side CRUD APIs
+     *
+     * The function does the following:
+     *  1) Constructs the message
+     *  2) Finds the replicas of this key
+     *  3) Sends a message to the replica
+     */
 	void clientCreate(string key, string value);
 	void clientRead(string key);
 	void clientUpdate(string key, string value);
@@ -116,13 +127,13 @@ public:
 	// find the addresses of nodes that are responsible for a key
 	vector<Node> findNodes(string key);
 
-	// server
+	// server side CRUD APIs
 	bool createKeyValue(string key, string value, ReplicaType replica);
 	string readKey(string key);
 	bool updateKeyValue(string key, string value, ReplicaType replica);
 	bool deletekey(string key);
 
-        ReplicaType ConvertToReplicaType(string replicaTypeString);
+    ReplicaType ConvertToReplicaType(string replicaTypeString);
     
 	// stabilization protocol - handle multiple failures
 	void stabilizationProtocol();
