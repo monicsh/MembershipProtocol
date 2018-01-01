@@ -127,7 +127,12 @@ public:
 	// find the addresses of nodes that are responsible for a key
 	vector<Node> findNodes(string key);
 
-	// server side CRUD APIs
+     /**
+     * DESCRIPTION: Server side  API
+     *      The function does the following:
+     *      1) read/create/update/delete key value from/into the local hash table
+     *      2) Return true or false based on success or failure
+     */
 	bool createKeyValue(string key, string value, ReplicaType replica);
 	string readKey(string key);
 	bool updateKeyValue(string key, string value, ReplicaType replica);

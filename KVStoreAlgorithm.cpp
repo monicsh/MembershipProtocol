@@ -231,42 +231,15 @@ void KVStoreAlgorithm::dispatchMessages(Message message){
 
 }
 
-
-/**
- * FUNCTION NAME: createKeyValue
- *
- * DESCRIPTION: Server side CREATE API
- *                              The function does the following:
- *                              1) Inserts key value into the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType replica) {
-    /*
-     * Implement this
-     */
-    // Insert key, value, replicaType into the hash table
     Entry entry = Entry(value, par->getcurrtime(), replica);
-    string keyValue = entry.convertToString();
-    return this->ht->create(key, keyValue);
+    return this->ht->create(key, entry.convertToString());
 }
 
-/**
- * FUNCTION NAME: readKey
- *
- * DESCRIPTION: Server side READ API
- *                          This function does the following:
- *                          1) Read key from local hash table
- *                          2) Return value
- */
 string KVStoreAlgorithm::readKey(string key) {
-    // Read key from local hash table and return value
-	
-	// parse and retur KeyValue from input string -> KeyValue:time:replicaType
 	string valueTuple = ht->read(key);
     if (!valueTuple.empty()) {
-		
-        //parse value string
-        size_t pos = valueTuple.find(":");
+            size_t pos = valueTuple.find(":");
 		
 		if (pos != std::string::npos) {
 			return valueTuple.substr(0, pos); // return first value
@@ -276,14 +249,6 @@ string KVStoreAlgorithm::readKey(string key) {
 	return "";
 }
 
-/**
- * FUNCTION NAME: updateKeyValue
- *
- * DESCRIPTION: Server side UPDATE API
- *                              This function does the following:
- *                              1) Update the key to the new value in the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
     // Update key in local hash table and return true or false
     Entry entry = Entry(value, par->getcurrtime(), replica);
@@ -292,14 +257,6 @@ bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType repl
 
 }
 
-/**
- * FUNCTION NAME: deleteKey
- *
- * DESCRIPTION: Server side DELETE API
- *                              This function does the following:
- *                              1) Delete the key from the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::deletekey(string key) {
     // Delete the key from the local hash table
     return this->ht->deleteKey(key);
