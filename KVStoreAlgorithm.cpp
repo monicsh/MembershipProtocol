@@ -173,7 +173,6 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
         Message msg = Message(g_transID, memberNode->addr, msgType, key);
 
         this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
     }
 }
 
@@ -184,7 +183,6 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
         Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
 
         this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
     }
 }
 
@@ -198,7 +196,6 @@ void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
 }
 
 void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
-    // add quorom counter = 0 for each sent READ message triplet sent above
     this->quorum[g_transID].transMsgType = msgType;
     this->quorum[g_transID].reqTime = this->par->getcurrtime();
     this->quorum[g_transID].reqKey = key;
@@ -206,98 +203,24 @@ void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
     g_transID++;
 }
 
-
-/**
- * FUNCTION NAME: clientCreate
- *
- * DESCRIPTION: client side CREATE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
 void KVStoreAlgorithm::clientCreate(string key, string value) {
-
-    // 1. Constructs the message	(transID::fromAddr::CREATE::key::value::ReplicaType)
-    // 2. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 3. Sends a message to the replica
-	MessageType msgType = CREATE;
-    sendMessageToReplicas(replicaNodes, msgType, key, value);
-        //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
-
-    updateQuorum(msgType, key);
+    sendMessageToReplicas(findNodes(key), CREATE, key, value);
+    updateQuorum(CREATE, key);
 }
 
-
-/**
- * FUNCTION NAME: clientRead
- *
- * DESCRIPTION: client side READ API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
 void KVStoreAlgorithm::clientRead(string key){
-    // 1. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 2. Send messages to the replicas
-    MessageType msgType = READ;
-    sendMessageToReplicas(replicaNodes, msgType, key);
-
-    //updated Quorum
-    updateQuorumRead(msgType, key);
+    sendMessageToReplicas(findNodes(key), READ, key);
+    updateQuorumRead(READ, key);
 }
 
-
-/**
- * FUNCTION NAME: clientUpdate
- *
- * DESCRIPTION: client side UPDATE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
 void KVStoreAlgorithm::clientUpdate(string key, string value){
-    // 1. Constructs the message	(transID::fromAddr::UPDATE::key::value::ReplicaType)
-    // 2. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-	
-    // 3. Sends a message to the replica
-    //if (replicaNodes.size() == 3){
-	MessageType msgType = UPDATE;
-	//ReplicaType replicaType = PRIMARY;
-    sendMessageToReplicas(replicaNodes, msgType, key, value);
-
-    //this->log->logUpdateSuccess(&memberNode->addr, true, g_transID, key, value);
-	updateQuorum(msgType, key);
-		
+    sendMessageToReplicas(findNodes(key), UPDATE, key, value);
+	updateQuorum(UPDATE, key);
 }
 
-/**
- * FUNCTION NAME: clientDelete
- *
- * DESCRIPTION: client side DELETE API
- *                              The function does the following:
- *                              1) Constructs the message
- *                              2) Finds the replicas of this key
- *                              3) Sends a message to the replica
- */
 void KVStoreAlgorithm::clientDelete(string key){
-    // 1. Finds the replicas of this key
-    vector<Node> replicaNodes = findNodes(key);
-
-    // 2. Send messages to the replicas
-    MessageType msgType = DELETE;
-    //if (replicaNodes.size() == 3){
-	sendMessageToReplicas(replicaNodes, msgType, key);
-	
-	updateQuorum(msgType, key);
-
+	sendMessageToReplicas(findNodes(key), DELETE, key);
+	updateQuorum(DELETE, key);
 }
 
 

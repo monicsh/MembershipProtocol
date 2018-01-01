@@ -100,7 +100,15 @@ public:
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
     void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
-	// client side CRUD APIs
+
+    /**
+     * client side CRUD APIs
+     *
+     * The function does the following:
+     *  1) Constructs the message
+     *  2) Finds the replicas of this key
+     *  3) Sends a message to the replica
+     */
 	void clientCreate(string key, string value);
 	void clientRead(string key);
 	void clientUpdate(string key, string value);

@@ -121,6 +121,7 @@ Message::Message(int _transID, Address _fromAddr, MessageType _type, bool _succe
 
 /**
  * Constructor
+ * mesage format "transID::fromAddr::UPDATE::key::value::ReplicaType"
  */
 // construct read reply message
 Message::Message(int _transID, Address _fromAddr, string _value){
