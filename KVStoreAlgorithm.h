@@ -96,6 +96,7 @@ public:
 	vector<Node> getMembershipList();
 	size_t hashFunction(string key);
 
+    void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
     void updateQuorumRead(MessageType msgType, string key);
 
 	// client side CRUD APIs

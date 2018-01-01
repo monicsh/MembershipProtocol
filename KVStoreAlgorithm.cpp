@@ -219,6 +219,13 @@ void KVStoreAlgorithm::clientRead(string key){
 
     // 2. Send messages to the replicas
     MessageType msgType = READ;
+    sendMessageToReplicas(replicaNodes, msgType, key);
+
+    //updated Quorum
+    updateQuorumRead(msgType, key);
+}
+
+void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
         Message msg = Message(g_transID, memberNode->addr, msgType, key);
@@ -226,12 +233,7 @@ void KVStoreAlgorithm::clientRead(string key){
         this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
 
     }
-
-    //updated Quorum
-    updateQuorumRead(msgType, key);
 }
-
-
 void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
     // add quorom counter = 0 for each sent READ message triplet sent above
     this->quorumRead[g_transID].transMsgType = msgType;
