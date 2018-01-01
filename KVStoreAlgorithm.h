@@ -97,6 +97,7 @@ public:
 	size_t hashFunction(string key);
 
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
+    void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
     void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
 	// client side CRUD APIs

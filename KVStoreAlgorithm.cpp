@@ -167,6 +167,46 @@ size_t KVStoreAlgorithm::hashFunction(string key) {
     return ret%RING_SIZE;
 }
 
+void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
+    for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
+        Address toaddr = it->nodeAddress;
+        Message msg = Message(g_transID, memberNode->addr, msgType, key);
+
+        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+
+    }
+}
+
+void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value){
+    int replica =  0;
+    for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
+        Address toaddr = it->nodeAddress;
+        Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
+
+        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+
+    }
+}
+
+void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
+    // add quorom counter = 0 for each sent READ message triplet sent above
+    this->quorumRead[g_transID].transMsgType = msgType;
+    this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
+    this->quorumRead[g_transID].reqKey = key;
+
+    g_transID++;
+}
+
+void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
+    // add quorom counter = 0 for each sent READ message triplet sent above
+    this->quorum[g_transID].transMsgType = msgType;
+    this->quorum[g_transID].reqTime = this->par->getcurrtime();
+    this->quorum[g_transID].reqKey = key;
+
+    g_transID++;
+}
+
+
 /**
  * FUNCTION NAME: clientCreate
  *
@@ -184,28 +224,12 @@ void KVStoreAlgorithm::clientCreate(string key, string value) {
 
     // 3. Sends a message to the replica
 	MessageType msgType = CREATE;
-	int replica =  0;
-	
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-		
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
-	}
+    sendMessageToReplicas(replicaNodes, msgType, key, value);
         //this->log->logCreateSuccess(&memberNode->addr, true, g_transID, key, value);
 
     updateQuorum(msgType, key);
 }
 
-void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
-    // add quorom counter = 0 for each sent READ message triplet sent above
-    this->quorum[g_transID].transMsgType = msgType;
-    this->quorum[g_transID].reqTime = this->par->getcurrtime();
-    this->quorum[g_transID].reqKey = key;
-
-    g_transID++;
-}
 
 /**
  * FUNCTION NAME: clientRead
@@ -228,23 +252,7 @@ void KVStoreAlgorithm::clientRead(string key){
     updateQuorumRead(msgType, key);
 }
 
-void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
-    for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-        Address toaddr = it->nodeAddress;
-        Message msg = Message(g_transID, memberNode->addr, msgType, key);
 
-        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
-    }
-}
-void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
-    // add quorom counter = 0 for each sent READ message triplet sent above
-    this->quorumRead[g_transID].transMsgType = msgType;
-    this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
-    this->quorumRead[g_transID].reqKey = key;
-
-    g_transID++;
-}
 /**
  * FUNCTION NAME: clientUpdate
  *
@@ -263,16 +271,9 @@ void KVStoreAlgorithm::clientUpdate(string key, string value){
     //if (replicaNodes.size() == 3){
 	MessageType msgType = UPDATE;
 	//ReplicaType replicaType = PRIMARY;
-	int replica =  0;
+    sendMessageToReplicas(replicaNodes, msgType, key, value);
 
-	for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
-		Address toaddr = it->nodeAddress;
-		Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
-
-		this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
-
-	}
-        //this->log->logUpdateSuccess(&memberNode->addr, true, g_transID, key, value);
+    //this->log->logUpdateSuccess(&memberNode->addr, true, g_transID, key, value);
 	updateQuorum(msgType, key);
 		
 }
