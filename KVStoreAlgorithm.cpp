@@ -3,6 +3,7 @@
  *
  * DESCRIPTION: MP2Node class definition
  **********************************/
+
 #include "KVStoreAlgorithm.h"
 
 KVStoreAlgorithm::KVStoreAlgorithm(
@@ -11,7 +12,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     EmulNet * emulNet,
     Log * log,
     Address * address,
-    IMessageQueue * queue )
+    IMessageQueue * queue)
 {
     this->m_memberNode = memberNode;
     this->m_parameters = par;
@@ -19,6 +20,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     this->m_logger = log;
     this->m_queue = queue;
 
+    // TODO (monicsh): inject from ctor
     m_dataStore = new HashTable();
 
     this->m_memberNode->addr = *address;
@@ -29,8 +31,7 @@ KVStoreAlgorithm::~KVStoreAlgorithm() {
     delete m_memberNode;
 }
 
-ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
-{
+ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString) {
     if (std::stoi(replicaTypeString) == 1) {
         return SECONDARY;
     } else if (std::stoi(replicaTypeString) == 2) {
@@ -40,15 +41,14 @@ ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
     return PRIMARY;
 }
 
-/**
- * FUNCTION NAME: updateRing
- *
- * DESCRIPTION: This function does the following:
- *                              1) Gets the current membership list from the Membership Protocol (MP1Node)
- *                                 The membership list is returned as a vector of Nodes. See Node class in Node.h
- *                              2) Constructs the ring based on the membership list
- *                              3) Calls the Stabilization Protocol
- */
+
+ // FUNCTION NAME: updateRing
+
+ // DESCRIPTION: This function does the following:
+ //  1) Gets the current membership list from the Membrship Protocol (MP1Node)
+ //     The membership list is returned as a vector ofNodes. See Node class in Node.h
+ //  2) Constructs the ring based on the membership list
+ //  3) Calls the Stabilization Protocol
 void KVStoreAlgorithm::updateRing()
 {
     // Step 1. Get the current membership list from Membership Protocol (mp1)
@@ -91,7 +91,9 @@ void KVStoreAlgorithm::updateRing()
  * return : true if  state changed
  *                      false on state unchanged
  */
-bool KVStoreAlgorithm::isCurrentStateChange(vector<Node> curMemList, vector<Node> ring){
+bool KVStoreAlgorithm::isCurrentStateChange(
+    vector<Node> curMemList,
+    vector<Node> ring){
 
     size_t  length_of_ring = ring.size();
     size_t  length_of_memList = curMemList.size();
