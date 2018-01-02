@@ -29,7 +29,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
 {
     this->memberNode = memberNode;
     this->par = par;
-    this->emulNet = emulNet;
+    this->m_networkEmulator = emulNet;
     this->log = log;
     this->m_queue = queue;
 
@@ -172,7 +172,7 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
         Address toaddr = it->nodeAddress;
         Message msg = Message(g_transID, memberNode->addr, msgType, key);
 
-        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+        this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
     }
 }
 
@@ -182,7 +182,7 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
         Address toaddr = it->nodeAddress;
         Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
 
-        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+        this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
     }
 }
 
@@ -236,7 +236,6 @@ bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType repl
     return this->ht->create(key, entry.convertToString());
 }
 
-
 string KVStoreAlgorithm::readKey(string key) {
 	string valueTuple = ht->read(key);
 	if (valueTuple.empty()) return "";
@@ -245,6 +244,8 @@ string KVStoreAlgorithm::readKey(string key) {
 	if (pos != std::string::npos) {
 		return valueTuple.substr(0, pos);
 	}
+
+    return "";
 }
 
 bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
@@ -335,7 +336,7 @@ void KVStoreAlgorithm::checkMessages() {
 				Address toaddr = fromaddr;
 				
 				this->log->logCreateSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
             } else {
 				this->log->logCreateFail(&memberNode->addr, isCoordinator, transID, key, value);
             }
@@ -354,7 +355,7 @@ void KVStoreAlgorithm::checkMessages() {
                 Address toaddr = fromaddr;
 				
                 this->log->logReadSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
 
             } else{
                 this->log->logReadFail(&memberNode->addr, isCoordinator, transID, key);
@@ -374,14 +375,14 @@ void KVStoreAlgorithm::checkMessages() {
                 Address toaddr = fromaddr;
 				
 				this->log->logUpdateSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
             }
             else{
                 Message msg = Message(transID, memberNode->addr, MessageType::REPLY , false);
                 Address toaddr = fromaddr;
 				
 				this->log->logUpdateFail(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
             }
 
             break;
@@ -396,7 +397,7 @@ void KVStoreAlgorithm::checkMessages() {
 				Address toaddr = fromaddr;
 				
                 this->log->logDeleteSuccess(&memberNode->addr, isCoordinator, transID, key);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
             } else {
 				
 				//REPLY  send acknoledgement to sender
@@ -404,7 +405,7 @@ void KVStoreAlgorithm::checkMessages() {
 				Address toaddr = fromaddr;
 				
                 this->log->logDeleteFail(&memberNode->addr, isCoordinator, transID, key);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
             }
             break;
         }
@@ -569,7 +570,7 @@ bool KVStoreAlgorithm::recvLoop() {
     }
     else {
         bool flag;
-        flag =  emulNet->ENrecv(&(memberNode->addr), this->m_queue, NULL, 1);
+        flag =  m_networkEmulator->ENrecv(&(memberNode->addr), this->m_queue, NULL, 1);
         return flag;
     }
 }
@@ -658,7 +659,7 @@ void KVStoreAlgorithm::stabilizationProtocol()
 						
 						Address toaddr = ring[succ_1].nodeAddress;
 						Message msg = Message(g_transID, memberNode->addr, CREATE, key, keyValue, SECONDARY);
-						this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+						this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
 						
 					}
 					
@@ -669,7 +670,7 @@ void KVStoreAlgorithm::stabilizationProtocol()
 						
 						Address toaddr = ring[succ_2].nodeAddress;
 						Message msg = Message(g_transID, memberNode->addr, CREATE, key, keyValue, TERTIARY);
-						this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+						this->m_networkEmulator->ENsend(&memberNode->addr, &toaddr, msg.toString());
 						
 					}
 					g_transID++;
@@ -683,8 +684,8 @@ void KVStoreAlgorithm::stabilizationProtocol()
 							Address toaddrPred = ring[pred_1].nodeAddress;
 							Message msgToSucc = Message(g_transID, memberNode->addr, CREATE, key, keyValue, TERTIARY);
 							Message msgToPred= Message(g_transID, memberNode->addr, CREATE, key, keyValue, PRIMARY);
-							this->emulNet->ENsend(&memberNode->addr, &toaddrSucc, msgToSucc.toString());
-							this->emulNet->ENsend(&memberNode->addr, &toaddrPred, msgToPred.toString());
+							this->m_networkEmulator->ENsend(&memberNode->addr, &toaddrSucc, msgToSucc.toString());
+							this->m_networkEmulator->ENsend(&memberNode->addr, &toaddrPred, msgToPred.toString());
 							g_transID++;
 						}
 						
