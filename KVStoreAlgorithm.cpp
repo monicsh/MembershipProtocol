@@ -393,11 +393,12 @@ void KVStoreAlgorithm::processReplyMessage(
         return;
     }
 
-     if(record->second.replyCounter == 2) {
-        // log as success on basis of message type; but dont remove
-        //TODO : log on basis of message type
+    // log as success on basis of message type; but dont remove
+    if(record->second.replyCounter == 2) {
+
         if (record->second.transMsgType == CREATE){
             this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+
         } else if (record->second.transMsgType == UPDATE){
             this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
 
@@ -405,7 +406,41 @@ void KVStoreAlgorithm::processReplyMessage(
             this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
         }
      }
+}
 
+void KVStoreAlgorithm::processReadReplyMessage(
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string value = messageParts[3];
+
+    auto record = m_quorumRead.find(transID);
+    if (record == m_quorumRead.end()) {
+        return; // not found
+    }
+
+    // else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
+    // else insert new key with transID with counter 1
+    record->second.replyCounter++;
+
+    if (record->second.replyCounter == 3) {
+
+        // quorom met; remove this triplet
+        m_quorumRead.erase(record);
+
+        return;
+    }
+
+    // log as success; but dont remove
+    if (record->second.replyCounter == 2) {
+        this->m_logger->logReadSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
+
+        return;
+    }
+
+    // TODO : for =<1
+    return;
 }
 
 /**
@@ -470,31 +505,7 @@ void KVStoreAlgorithm::checkMessages() {
         }
         case MessageType::READREPLY:
         {
-			const string value = messageParts[3];
-
-			auto record = m_quorumRead.find(transID);
-			if (record == m_quorumRead.end()) {
-				break; // not found
-			}
-			
-			// else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
-			// else insert new key with transID with counter 1
-
-			record->second.replyCounter++;
-			
-			if (record->second.replyCounter == 3) {
-				// quorom met; remove this triplet
-				
-				m_quorumRead.erase(record);
-				
-			} else if (record->second.replyCounter == 2) {
-				// log as success; but dont remove
-				
-				this->m_logger->logReadSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
-			} else {
-				// =1; hold on
-			}
-			
+            processReadReplyMessage(isCoordinator, messageParts, transID);
             break;
         }
 				

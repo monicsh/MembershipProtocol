@@ -107,6 +107,8 @@ private:
     void processUpdateMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+
 public:
     virtual ~KVStoreAlgorithm();
 	KVStoreAlgorithm(
