@@ -669,10 +669,15 @@ void KVStoreAlgorithm::stabilizationProtocol()
     int i;
     for (i = 0; i < this->m_ring.size(); i++) {
         if (m_ring[i].nodeAddress == this->m_memberNode->addr){
-            myPos = i;
+            myPos = i;          // found pos
+
             break;
         }
+    }
 
+    if (myPos == -1)
+    {
+        throw new std::runtime_error("stabilization_protocol_error: myPos is -1");
     }
 
     // set successors and predeccesors index
@@ -684,16 +689,17 @@ void KVStoreAlgorithm::stabilizationProtocol()
     // Initialize successors and predeccesors
     if (this->m_hasMyReplicas.empty() && this->m_haveReplicasOf.empty()){
 
-        //set hasMyReplicas and haveReplicasOf
         this->m_hasMyReplicas.push_back(m_ring[succ_1]);
         this->m_hasMyReplicas.push_back(m_ring[succ_2]);
         this->m_haveReplicasOf.push_back(m_ring[pred_1]);
         this->m_haveReplicasOf.push_back(m_ring[pred_2]);
-
     }
 
     // iterate key-value hash table
-    for (auto it = this->m_dataStore->hashTable.begin(); it != this->m_dataStore->hashTable.end(); it++) {
+    for (auto it = this->m_dataStore->hashTable.begin();
+         it != this->m_dataStore->hashTable.end();
+         it++) {
+
         string key = it->first;
         string value = it->second;
         //extract replicaType from value string
@@ -771,7 +777,6 @@ void KVStoreAlgorithm::stabilizationProtocol()
             case 2:
                 break;
             }
-
 
             m_hasMyReplicas.clear();
             m_haveReplicasOf.clear();
