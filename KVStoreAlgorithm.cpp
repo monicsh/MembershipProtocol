@@ -478,36 +478,36 @@ void KVStoreAlgorithm::checkMessages() {
 
         switch(messageType) {
 
-        case MessageType::CREATE:
-        {
-            processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::READ:
-        {
-            processReadMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::UPDATE:
-        {
-            processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::DELETE:
-        {
-            processDeleteMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::REPLY:
-        {
-            processReplyMessage(isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::READREPLY:
-        {
-            processReadReplyMessage(isCoordinator, messageParts, transID);
-            break;
-        }
+            case MessageType::CREATE:
+            {
+                processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::READ:
+            {
+                processReadMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::UPDATE:
+            {
+                processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::DELETE:
+            {
+                processDeleteMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::REPLY:
+            {
+                processReplyMessage(isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::READREPLY:
+            {
+                processReadReplyMessage(isCoordinator, messageParts, transID);
+                break;
+            }
 				
         } // switch end
 
@@ -517,15 +517,12 @@ void KVStoreAlgorithm::checkMessages() {
     }
 }
 
+/*
+ * This function should also ensure all READ and UPDATE operation
+ * get QUORUM replies
+ */
 void KVStoreAlgorithm::checkQuoromTimeout()
 {
-    /*
-     * This function should also ensure all READ and UPDATE operation
-     * get QUORUM replies
-     */
-    //Handle one count CRUD operation
-    //iterate quorum one-by-one
-
     auto record  = this->m_quorum.begin();
     while (record != this->m_quorum.end()) {
 
