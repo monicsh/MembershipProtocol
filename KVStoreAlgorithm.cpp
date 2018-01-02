@@ -5,20 +5,6 @@
  **********************************/
 #include "KVStoreAlgorithm.h"
 
-ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
-{
-    if (std::stoi(replicaTypeString) == 1) {
-        return SECONDARY;
-    } else if (std::stoi(replicaTypeString) == 2) {
-        return TERTIARY;
-    }
-
-    return PRIMARY;
-}
-
-/**
- * constructor
- */
 KVStoreAlgorithm::KVStoreAlgorithm(
     Member *memberNode,
     Params *par,
@@ -38,12 +24,20 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     this->m_memberNode->addr = *address;
 }
 
-/**
- * Destructor
- */
 KVStoreAlgorithm::~KVStoreAlgorithm() {
     delete m_dataStore;
     delete m_memberNode;
+}
+
+ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
+{
+    if (std::stoi(replicaTypeString) == 1) {
+        return SECONDARY;
+    } else if (std::stoi(replicaTypeString) == 2) {
+        return TERTIARY;
+    }
+
+    return PRIMARY;
 }
 
 /**
@@ -750,8 +744,6 @@ void KVStoreAlgorithm::stabilizationProtocol()
             m_hasMyReplicas.push_back(m_ring[succ_2]);
             m_haveReplicasOf.push_back(m_ring[pred_1]);
             m_haveReplicasOf.push_back(m_ring[pred_2]);
-
-
         }
     }
 
