@@ -513,6 +513,7 @@ void KVStoreAlgorithm::checkMessages() {
 
         // update quorom state at end
         checkQuoromTimeout();
+        checkReadQuoromTimeout();
     }
 }
 
@@ -552,18 +553,23 @@ void KVStoreAlgorithm::checkQuoromTimeout()
         // check next
         ++record;
     }
+}
 
-    //READQuorum
-    auto recordRead  = this->m_quorumRead.begin();
-    while (recordRead != this->m_quorumRead.end()) {
+void KVStoreAlgorithm::checkReadQuoromTimeout()
+{
+    auto record = this->m_quorumRead.begin();
+    while (record != this->m_quorumRead.end()) {
 
-        if (recordRead->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
-            this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
+        if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+            this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
 
-            recordRead = this->m_quorumRead.erase(recordRead);
-        } else {
-            ++recordRead;
+            // remove failing qurom record
+            record = this->m_quorumRead.erase(record);
+            continue;
         }
+
+        // check next
+        ++record;
     }
 }
 

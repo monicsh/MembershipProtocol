@@ -82,6 +82,7 @@ private:
     void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
     void checkQuoromTimeout();
+    void checkReadQuoromTimeout();
 
     /**
      * DESCRIPTION: Server side  API
