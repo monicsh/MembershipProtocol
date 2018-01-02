@@ -313,6 +313,34 @@ void KVStoreAlgorithm::processCreateMessage(
     this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 }
 
+void KVStoreAlgorithm::processUpdateMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = messageParts[4];
+    const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
+
+    if (!updateKeyValue(key, value, replicaType))
+    {
+        Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
+        Address toaddr = fromaddr;
+
+        this->m_logger->logUpdateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+
+        return;
+    }
+
+    //REPLY  send acknoledgement to sender
+    Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logUpdateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
 
 /**
  * FUNCTION NAME: checkMessages
@@ -361,27 +389,7 @@ void KVStoreAlgorithm::checkMessages() {
         }
         case MessageType::UPDATE:
         {
-			const string key = messageParts[3];
-			const string value = messageParts[4];
-			const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
-
-            // key - value
-            if (updateKeyValue(key, value, replicaType)) {
-                //REPLY  send acknoledgement to sender
-                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
-                Address toaddr = fromaddr;
-				
-				this->m_logger->logUpdateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-            }
-            else{
-                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
-                Address toaddr = fromaddr;
-				
-				this->m_logger->logUpdateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-            }
-
+            processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
             break;
         }
         case MessageType::DELETE:
