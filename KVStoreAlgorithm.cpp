@@ -27,23 +27,23 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     Address * address,
     IMessageQueue * queue )
 {
-    this->memberNode = memberNode;
-    this->par = par;
-    this->emulNet = emulNet;
-    this->log = log;
+    this->m_memberNode = memberNode;
+    this->m_parameters = par;
+    this->m_networkEmulator = emulNet;
+    this->m_logger = log;
     this->m_queue = queue;
 
-    ht = new HashTable();
+    m_dataStore = new HashTable();
 
-    this->memberNode->addr = *address;
+    this->m_memberNode->addr = *address;
 }
 
 /**
  * Destructor
  */
 KVStoreAlgorithm::~KVStoreAlgorithm() {
-    delete ht;
-    delete memberNode;
+    delete m_dataStore;
+    delete m_memberNode;
 }
 
 /**
@@ -69,14 +69,14 @@ void KVStoreAlgorithm::updateRing()
     sort(curMemList.begin(), curMemList.end());
 
     // has ring changed?
-    size_t length_of_ring = ring.size();
+    size_t length_of_ring = m_ring.size();
     size_t length_of_memList = curMemList.size();
 
     bool hasRingChanged = (length_of_ring != length_of_memList);
     if (!hasRingChanged) {
         for (int i = 0; i < length_of_memList; i++) {
 			auto hashCurrML = curMemList[i].getHashCode();
-			auto hashRing = ring[i].getHashCode();
+			auto hashRing = m_ring[i].getHashCode();
             if ( hashCurrML != hashRing ) {
                 hasRingChanged = true;
                 break;
@@ -91,8 +91,8 @@ void KVStoreAlgorithm::updateRing()
     // has been a changed in the ring
     if (hasRingChanged){
 		// update ring
-		this->ring = curMemList;
-		if (!this->ht->isEmpty()) {
+		this->m_ring = curMemList;
+		if (!this->m_dataStore->isEmpty()) {
 			stabilizationProtocol();
 		}
     }
@@ -110,19 +110,16 @@ bool KVStoreAlgorithm::isCurrentStateChange(vector<Node> curMemList, vector<Node
 
     if (length_of_ring != length_of_memList){
         return true;
-    } else {
-        // if length equal
-        for (int i = 0; i< length_of_memList; i++){
-            if (curMemList[i].getHashCode() != ring[i].getHashCode()){
-                return true;
-            }
-        }
-        return false;
-
     }
 
+    for (int i = 0; i< length_of_memList; i++){
+        if (curMemList[i].getHashCode() != ring[i].getHashCode()){
+            return true;
+        }
+    }
+    
+    return false;
 }
-
 
 /**
  * FUNCTION NAME: getMemberhipList
@@ -138,10 +135,10 @@ vector<Node> KVStoreAlgorithm::getMembershipList()
 {
     vector<Node> curMemList;
 
-    for (auto i = 0 ; i < this->memberNode->memberList.size(); i++ ) {
+    for (auto i = 0 ; i < this->m_memberNode->memberList.size(); i++ ) {
 
-        int id = this->memberNode->memberList.at(i).getid();
-        short port = this->memberNode->memberList.at(i).getport();
+        int id = this->m_memberNode->memberList.at(i).getid();
+        short port = this->m_memberNode->memberList.at(i).getport();
 
         Address addressOfThisMember;
         memcpy(&addressOfThisMember.m_addr[0], &id, sizeof(int));
@@ -170,9 +167,9 @@ size_t KVStoreAlgorithm::hashFunction(string key) {
 void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
-        Message msg = Message(g_transID, memberNode->addr, msgType, key);
+        Message msg = Message(g_transID, m_memberNode->addr, msgType, key);
 
-        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
     }
 }
 
@@ -180,25 +177,25 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
     int replica =  0;
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
-        Message msg = Message(g_transID, memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
+        Message msg = Message(g_transID, m_memberNode->addr, msgType, key, value, static_cast<ReplicaType>(replica++));
 
-        this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
     }
 }
 
 void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
     // add quorom counter = 0 for each sent READ message triplet sent above
-    this->quorumRead[g_transID].transMsgType = msgType;
-    this->quorumRead[g_transID].reqTime = this->par->getcurrtime();
-    this->quorumRead[g_transID].reqKey = key;
+    this->m_quorumRead[g_transID].transMsgType = msgType;
+    this->m_quorumRead[g_transID].reqTime = this->m_parameters->getcurrtime();
+    this->m_quorumRead[g_transID].reqKey = key;
 
     g_transID++;
 }
 
 void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
-    this->quorum[g_transID].transMsgType = msgType;
-    this->quorum[g_transID].reqTime = this->par->getcurrtime();
-    this->quorum[g_transID].reqKey = key;
+    this->m_quorum[g_transID].transMsgType = msgType;
+    this->m_quorum[g_transID].reqTime = this->m_parameters->getcurrtime();
+    this->m_quorum[g_transID].reqKey = key;
 
     g_transID++;
 }
@@ -223,86 +220,30 @@ void KVStoreAlgorithm::clientDelete(string key){
 	updateQuorum(DELETE, key);
 }
 
-
-/**
- * coordinator dispatches messages to corresponding nodes
- */
-void KVStoreAlgorithm::dispatchMessages(Message message){
-
-}
-
-
-/**
- * FUNCTION NAME: createKeyValue
- *
- * DESCRIPTION: Server side CREATE API
- *                              The function does the following:
- *                              1) Inserts key value into the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType replica) {
-    /*
-     * Implement this
-     */
-    // Insert key, value, replicaType into the hash table
-    Entry entry = Entry(value, par->getcurrtime(), replica);
-    string keyValue = entry.convertToString();
-    return this->ht->create(key, keyValue);
+    Entry entry = Entry(value, m_parameters->getcurrtime(), replica);
+    return this->m_dataStore->create(key, entry.convertToString());
 }
 
-/**
- * FUNCTION NAME: readKey
- *
- * DESCRIPTION: Server side READ API
- *                          This function does the following:
- *                          1) Read key from local hash table
- *                          2) Return value
- */
 string KVStoreAlgorithm::readKey(string key) {
-    // Read key from local hash table and return value
-	
-	// parse and retur KeyValue from input string -> KeyValue:time:replicaType
-	string valueTuple = ht->read(key);
-    if (!valueTuple.empty()) {
-		
-        //parse value string
-        size_t pos = valueTuple.find(":");
-		
-		if (pos != std::string::npos) {
-			return valueTuple.substr(0, pos); // return first value
-		}
-    }
-	
-	return "";
+	string valueTuple = m_dataStore->read(key);
+	if (valueTuple.empty()) return "";
+
+	size_t pos = valueTuple.find(":");
+	if (pos != std::string::npos) {
+		return valueTuple.substr(0, pos);
+	}
+
+    return "";
 }
 
-/**
- * FUNCTION NAME: updateKeyValue
- *
- * DESCRIPTION: Server side UPDATE API
- *                              This function does the following:
- *                              1) Update the key to the new value in the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
-    // Update key in local hash table and return true or false
-    Entry entry = Entry(value, par->getcurrtime(), replica);
-    string keyValue = entry.convertToString();
-    return this->ht->update(key, keyValue);
-
+    Entry entry = Entry(value, m_parameters->getcurrtime(), replica);
+    return this->m_dataStore->update(key, entry.convertToString());
 }
 
-/**
- * FUNCTION NAME: deleteKey
- *
- * DESCRIPTION: Server side DELETE API
- *                              This function does the following:
- *                              1) Delete the key from the local hash table
- *                              2) Return true or false based on success or failure
- */
 bool KVStoreAlgorithm::deletekey(string key) {
-    // Delete the key from the local hash table
-    return this->ht->deleteKey(key);
+    return this->m_dataStore->deleteKey(key);
 }
 
 vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, size_t dataSize)
@@ -367,7 +308,7 @@ void KVStoreAlgorithm::checkMessages() {
         const Address fromaddr = Address(messageParts[1]);
         const int messageType = std::stoi(messageParts[2]);
 		
-        const bool isCoordinator = (messageParts[1] == memberNode->addr.getAddress());
+        const bool isCoordinator = (messageParts[1] == m_memberNode->addr.getAddress());
 
         switch(messageType) {
 
@@ -380,13 +321,13 @@ void KVStoreAlgorithm::checkMessages() {
             // key - value
             if (createKeyValue(key, value, replicaType)) {
 				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, memberNode->addr, MessageType::REPLY , true);
+				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
 				Address toaddr = fromaddr;
 				
-				this->log->logCreateSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_logger->logCreateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
             } else {
-				this->log->logCreateFail(&memberNode->addr, isCoordinator, transID, key, value);
+				this->m_logger->logCreateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
             }
             break;
         }
@@ -399,14 +340,14 @@ void KVStoreAlgorithm::checkMessages() {
             if (!value.empty()) {
 
                 //READREPLY
-                Message msg = Message(transID, memberNode->addr, value);
+                Message msg = Message(transID, m_memberNode->addr, value);
                 Address toaddr = fromaddr;
 				
-                this->log->logReadSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_logger->logReadSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 
             } else{
-                this->log->logReadFail(&memberNode->addr, isCoordinator, transID, key);
+                this->m_logger->logReadFail(&m_memberNode->addr, isCoordinator, transID, key);
             }
             break;
         }
@@ -419,18 +360,18 @@ void KVStoreAlgorithm::checkMessages() {
             // key - value
             if (updateKeyValue(key, value, replicaType)) {
                 //REPLY  send acknoledgement to sender
-                Message msg = Message(transID, memberNode->addr, MessageType::REPLY , true);
+                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
                 Address toaddr = fromaddr;
 				
-				this->log->logUpdateSuccess(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_logger->logUpdateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
             }
             else{
-                Message msg = Message(transID, memberNode->addr, MessageType::REPLY , false);
+                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
                 Address toaddr = fromaddr;
 				
-				this->log->logUpdateFail(&memberNode->addr, isCoordinator, transID, key, value);
-                this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+				this->m_logger->logUpdateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
             }
 
             break;
@@ -441,19 +382,19 @@ void KVStoreAlgorithm::checkMessages() {
 
             if (deletekey(key)) {
 				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, memberNode->addr, MessageType::REPLY , true);
+				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
 				Address toaddr = fromaddr;
 				
-                this->log->logDeleteSuccess(&memberNode->addr, isCoordinator, transID, key);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_logger->logDeleteSuccess(&m_memberNode->addr, isCoordinator, transID, key);
+				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
             } else {
 				
 				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, memberNode->addr, MessageType::REPLY , false);
+				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
 				Address toaddr = fromaddr;
 				
-                this->log->logDeleteFail(&memberNode->addr, isCoordinator, transID, key);
-				this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+                this->m_logger->logDeleteFail(&m_memberNode->addr, isCoordinator, transID, key);
+				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
             }
             break;
         }
@@ -461,8 +402,8 @@ void KVStoreAlgorithm::checkMessages() {
         {
 			const bool success("1" == messageParts[3]);
 			
-			auto record = quorum.find(transID);
-			if (record == quorum.end()) {
+			auto record = m_quorum.find(transID);
+			if (record == m_quorum.end()) {
 				break; // not found
 			}
 			
@@ -472,18 +413,18 @@ void KVStoreAlgorithm::checkMessages() {
 				if (record->second.replyCounter == 3) {
 					// quorom met; remove this triplet
 					
-					quorum.erase(record);
+					m_quorum.erase(record);
 					
 				} else if (record->second.replyCounter == 2) {
 					// log as success on basis of message type; but dont remove
 					//TODO : log on basis of message type
 					if (record->second.transMsgType == CREATE){
-						this->log->logCreateSuccess(&(this->memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+						this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
 					} else if (record->second.transMsgType == UPDATE){
-						this->log->logUpdateSuccess(&(this->memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+						this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
 					
 					} else if (record->second.transMsgType == DELETE){
-						this->log->logDeleteSuccess(&(this->memberNode->addr), isCoordinator, transID, record->second.reqKey);
+						this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
 					}
 					
 				} else {
@@ -498,8 +439,8 @@ void KVStoreAlgorithm::checkMessages() {
         {
 			const string value = messageParts[3];
 
-			auto record = quorumRead.find(transID);
-			if (record == quorumRead.end()) {
+			auto record = m_quorumRead.find(transID);
+			if (record == m_quorumRead.end()) {
 				break; // not found
 			}
 			
@@ -511,12 +452,12 @@ void KVStoreAlgorithm::checkMessages() {
 			if (record->second.replyCounter == 3) {
 				// quorom met; remove this triplet
 				
-				quorumRead.erase(record);
+				m_quorumRead.erase(record);
 				
 			} else if (record->second.replyCounter == 2) {
 				// log as success; but dont remove
 				
-				this->log->logReadSuccess(&(this->memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
+				this->m_logger->logReadSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
 			} else {
 				// =1; hold on
 			}
@@ -535,24 +476,24 @@ void KVStoreAlgorithm::checkMessages() {
 	//iterate quorum one-by-one
 	//for (auto & record : this->quorum){
 	
-	auto record  = this->quorum.begin();
-	while (record != this->quorum.end()){
-		if (record->second.replyCounter < 2 and record->second.reqTime <= this->par->getcurrtime() - 5){
+	auto record  = this->m_quorum.begin();
+	while (record != this->m_quorum.end()){
+		if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5){
 			//delete the record and log it as failure
 			if (record->second.transMsgType == CREATE){
-				this->log->logCreateFail(&(this->memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+				this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
 			} else if (record->second.transMsgType == READ){
-				this->log->logReadFail(&(this->memberNode->addr), true, record->first, record->second.reqKey);
+				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
 			}
 			else if (record->second.transMsgType == UPDATE){
 	 
-				this->log->logUpdateFail(&(this->memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+				this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
 	 
 			} else if (record->second.transMsgType == DELETE){
 	 
-				this->log->logDeleteFail(&(this->memberNode->addr), true, record->first, record->second.reqKey);
+				this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
 			}
-			record = this->quorum.erase(record);
+			record = this->m_quorum.erase(record);
 		} else {
 			++record;
 		}
@@ -560,12 +501,12 @@ void KVStoreAlgorithm::checkMessages() {
 	
 	
 	//READQuorum
-	auto recordRead  = this->quorumRead.begin();
-	while (recordRead != this->quorumRead.end()){
-		if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->par->getcurrtime() - 5){
-				this->log->logReadFail(&(this->memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
+	auto recordRead  = this->m_quorumRead.begin();
+	while (recordRead != this->m_quorumRead.end()){
+		if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5){
+				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
 			
-			recordRead = this->quorumRead.erase(recordRead);
+			recordRead = this->m_quorumRead.erase(recordRead);
 		} else {
 			++recordRead;
 		}
@@ -584,21 +525,21 @@ void KVStoreAlgorithm::checkMessages() {
 vector<Node> KVStoreAlgorithm::findNodes(string key) {
     size_t pos = hashFunction(key);
     vector<Node> addr_vec;
-    if (ring.size() >= 3) {
+    if (m_ring.size() >= 3) {
         // if pos <= min || pos > max, the leader is the min
-        if (pos <= ring.at(0).getHashCode() || pos > ring.at(ring.size()-1).getHashCode()) {
-            addr_vec.emplace_back(ring.at(0));
-            addr_vec.emplace_back(ring.at(1));
-            addr_vec.emplace_back(ring.at(2));
+        if (pos <= m_ring.at(0).getHashCode() || pos > m_ring.at(m_ring.size()-1).getHashCode()) {
+            addr_vec.emplace_back(m_ring.at(0));
+            addr_vec.emplace_back(m_ring.at(1));
+            addr_vec.emplace_back(m_ring.at(2));
         }
         else {
             // go through the ring until pos <= node
-            for (int i=1; i<ring.size(); i++){
-                Node addr = ring.at(i);
+            for (int i=1; i<m_ring.size(); i++){
+                Node addr = m_ring.at(i);
                 if (pos <= addr.getHashCode()) {
                     addr_vec.emplace_back(addr);
-                    addr_vec.emplace_back(ring.at((i+1)%ring.size()));
-                    addr_vec.emplace_back(ring.at((i+2)%ring.size()));
+                    addr_vec.emplace_back(m_ring.at((i+1)%m_ring.size()));
+                    addr_vec.emplace_back(m_ring.at((i+2)%m_ring.size()));
                     break;
                 }
             }
@@ -613,12 +554,12 @@ vector<Node> KVStoreAlgorithm::findNodes(string key) {
  * DESCRIPTION: Receive messages from EmulNet and push into the queue (mp2q)
  */
 bool KVStoreAlgorithm::recvLoop() {
-    if ( memberNode->bFailed ) {
+    if ( m_memberNode->bFailed ) {
         return false;
     }
     else {
         bool flag;
-        flag =  emulNet->ENrecv(&(memberNode->addr), this->m_queue, NULL, 1);
+        flag =  m_networkEmulator->ENrecv(&(m_memberNode->addr), this->m_queue, NULL, 1);
         return flag;
     }
 }
@@ -638,8 +579,8 @@ void KVStoreAlgorithm::stabilizationProtocol()
 	// 1. find out my postition in the ring
 	size_t myPos = -1;
 	int i;
-	for (i = 0; i < this->ring.size(); i++) {
-		if (ring[i].nodeAddress == this->memberNode->addr){
+	for (i = 0; i < this->m_ring.size(); i++) {
+		if (m_ring[i].nodeAddress == this->m_memberNode->addr){
 			myPos = i;
 			break;
 		}
@@ -647,24 +588,24 @@ void KVStoreAlgorithm::stabilizationProtocol()
 	}
 	
 	// set successors and predeccesors index
-	size_t succ_1 = (i+1)%(this->ring.size());
-	size_t succ_2 = (i+2)%(this->ring.size());
-	size_t pred_1 = (i-1 + this->ring.size())%(this->ring.size());
-	size_t pred_2 = (i-2 + this->ring.size())%(this->ring.size());
+	size_t succ_1 = (i+1)%(this->m_ring.size());
+	size_t succ_2 = (i+2)%(this->m_ring.size());
+	size_t pred_1 = (i-1 + this->m_ring.size())%(this->m_ring.size());
+	size_t pred_2 = (i-2 + this->m_ring.size())%(this->m_ring.size());
 	
 	// Initialize successors and predeccesors
-	if (this->hasMyReplicas.empty() && this->haveReplicasOf.empty()){
+	if (this->m_hasMyReplicas.empty() && this->m_haveReplicasOf.empty()){
 		
 		//set hasMyReplicas and haveReplicasOf
-		this->hasMyReplicas.push_back(ring[succ_1]);
-		this->hasMyReplicas.push_back(ring[succ_2]);
-		this->haveReplicasOf.push_back(ring[pred_1]);
-		this->haveReplicasOf.push_back(ring[pred_2]);
+		this->m_hasMyReplicas.push_back(m_ring[succ_1]);
+		this->m_hasMyReplicas.push_back(m_ring[succ_2]);
+		this->m_haveReplicasOf.push_back(m_ring[pred_1]);
+		this->m_haveReplicasOf.push_back(m_ring[pred_2]);
 		
 	}
 	
 	// iterate key-value hash table
-	for (auto it = this->ht->hashTable.begin(); it != this->ht->hashTable.end(); it++) {
+	for (auto it = this->m_dataStore->hashTable.begin(); it != this->m_dataStore->hashTable.end(); it++) {
 		string key = it->first;
 		string value = it->second;
 		//extract replicaType from value string
@@ -680,7 +621,7 @@ void KVStoreAlgorithm::stabilizationProtocol()
 		int r;
 		int myPosInReplica = -1;
 		for (r = 0; r < replicaSet.size(); r++){
-			if (replicaSet[r].nodeAddress == this->memberNode->addr){
+			if (replicaSet[r].nodeAddress == this->m_memberNode->addr){
 				myPosInReplica = r;
 				break;
 			}
@@ -700,40 +641,40 @@ void KVStoreAlgorithm::stabilizationProtocol()
 			//check others positions
 			switch (myPosInReplica){
 			case 0:
-					if (ring[succ_1].getAddress() != hasMyReplicas[0].getAddress() and
-						ring[succ_1].getAddress() != hasMyReplicas[1].getAddress()){
+					if (m_ring[succ_1].getAddress() != m_hasMyReplicas[0].getAddress() and
+						m_ring[succ_1].getAddress() != m_hasMyReplicas[1].getAddress()){
 						//new neighbor encounter
 						// Send Create message to new node for key, value, SECONDARY
 						
-						Address toaddr = ring[succ_1].nodeAddress;
-						Message msg = Message(g_transID, memberNode->addr, CREATE, key, keyValue, SECONDARY);
-						this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+						Address toaddr = m_ring[succ_1].nodeAddress;
+						Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
+						this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 						
 					}
 					
-					if (ring[succ_2].getAddress() != hasMyReplicas[0].getAddress() and
-						ring[succ_2].getAddress() != hasMyReplicas[1].getAddress()){
+					if (m_ring[succ_2].getAddress() != m_hasMyReplicas[0].getAddress() and
+						m_ring[succ_2].getAddress() != m_hasMyReplicas[1].getAddress()){
 						//new neighbor encounter
 						// Send Create message to new node for key, value, SECONDARY
 						
-						Address toaddr = ring[succ_2].nodeAddress;
-						Message msg = Message(g_transID, memberNode->addr, CREATE, key, keyValue, TERTIARY);
-						this->emulNet->ENsend(&memberNode->addr, &toaddr, msg.toString());
+						Address toaddr = m_ring[succ_2].nodeAddress;
+						Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
+						this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 						
 					}
 					g_transID++;
 				break;
 			case 1:
-					if (ring[succ_1].getAddress() != hasMyReplicas[0].getAddress()){
+					if (m_ring[succ_1].getAddress() != m_hasMyReplicas[0].getAddress()){
 						//new neighbor encounter
 						// Send Create message to new node for key, value, SECONDARY
-						if (ring[pred_1].getAddress() != haveReplicasOf[0].getAddress()) {
-							Address toaddrSucc = ring[succ_1].nodeAddress;
-							Address toaddrPred = ring[pred_1].nodeAddress;
-							Message msgToSucc = Message(g_transID, memberNode->addr, CREATE, key, keyValue, TERTIARY);
-							Message msgToPred= Message(g_transID, memberNode->addr, CREATE, key, keyValue, PRIMARY);
-							this->emulNet->ENsend(&memberNode->addr, &toaddrSucc, msgToSucc.toString());
-							this->emulNet->ENsend(&memberNode->addr, &toaddrPred, msgToPred.toString());
+						if (m_ring[pred_1].getAddress() != m_haveReplicasOf[0].getAddress()) {
+							Address toaddrSucc = m_ring[succ_1].nodeAddress;
+							Address toaddrPred = m_ring[pred_1].nodeAddress;
+							Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
+							Message msgToPred= Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, PRIMARY);
+							this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrSucc, msgToSucc.toString());
+							this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrPred, msgToPred.toString());
 							g_transID++;
 						}
 						
@@ -744,12 +685,12 @@ void KVStoreAlgorithm::stabilizationProtocol()
 			}
 			
 			
-			hasMyReplicas.clear();
-			haveReplicasOf.clear();
-			hasMyReplicas.push_back(ring[succ_1]);
-			hasMyReplicas.push_back(ring[succ_2]);
-			haveReplicasOf.push_back(ring[pred_1]);
-			haveReplicasOf.push_back(ring[pred_2]);
+			m_hasMyReplicas.clear();
+			m_haveReplicasOf.clear();
+			m_hasMyReplicas.push_back(m_ring[succ_1]);
+			m_hasMyReplicas.push_back(m_ring[succ_2]);
+			m_haveReplicasOf.push_back(m_ring[pred_1]);
+			m_haveReplicasOf.push_back(m_ring[pred_2]);
 			
 			
 		}
