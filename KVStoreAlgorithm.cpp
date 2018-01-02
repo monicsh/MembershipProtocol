@@ -26,14 +26,17 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     this->m_memberNode->addr = *address;
 }
 
-KVStoreAlgorithm::~KVStoreAlgorithm() {
+KVStoreAlgorithm::~KVStoreAlgorithm()
+{
     delete m_dataStore;
     delete m_memberNode;
 }
 
-ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString) {
+ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
+{
     if (std::stoi(replicaTypeString) == 1) {
         return SECONDARY;
+
     } else if (std::stoi(replicaTypeString) == 2) {
         return TERTIARY;
     }
@@ -93,17 +96,17 @@ void KVStoreAlgorithm::updateRing()
  */
 bool KVStoreAlgorithm::isCurrentStateChange(
     vector<Node> curMemList,
-    vector<Node> ring){
-
-    size_t  length_of_ring = ring.size();
-    size_t  length_of_memList = curMemList.size();
+    vector<Node> ring)
+{
+    size_t length_of_ring = ring.size();
+    size_t length_of_memList = curMemList.size();
 
     if (length_of_ring != length_of_memList){
         return true;
     }
 
-    for (int i = 0; i< length_of_memList; i++){
-        if (curMemList[i].getHashCode() != ring[i].getHashCode()){
+    for (int i = 0; i< length_of_memList; i++) {
+        if (curMemList[i].getHashCode() != ring[i].getHashCode()) {
             return true;
         }
     }
@@ -136,6 +139,7 @@ vector<Node> KVStoreAlgorithm::getMembershipList()
 
         curMemList.emplace_back(Node(addressOfThisMember));
     }
+
     return curMemList;
 }
 
@@ -148,13 +152,18 @@ vector<Node> KVStoreAlgorithm::getMembershipList()
  * RETURNS:
  * size_t position on the ring
  */
-size_t KVStoreAlgorithm::hashFunction(string key) {
+size_t KVStoreAlgorithm::hashFunction(string key)
+{
     std::hash<string> hashFunc;
     size_t ret = hashFunc(key);
     return ret%RING_SIZE;
 }
 
-void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key){
+void KVStoreAlgorithm::sendMessageToReplicas(
+    vector<Node> replicaNodes,
+    MessageType msgType,
+    string key)
+{
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
         Message msg = Message(g_transID, m_memberNode->addr, msgType, key);
@@ -163,7 +172,12 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
     }
 }
 
-void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value){
+void KVStoreAlgorithm::sendMessageToReplicas(
+    vector<Node> replicaNodes,
+    MessageType msgType,
+    string key,
+    string value)
+{
     int replica =  0;
     for (auto it = replicaNodes.begin(); it != replicaNodes.end(); it++){
         Address toaddr = it->nodeAddress;
@@ -173,7 +187,8 @@ void KVStoreAlgorithm::sendMessageToReplicas(vector<Node> replicaNodes, MessageT
     }
 }
 
-void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
+void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key)
+{
     // add quorom counter = 0 for each sent READ message triplet sent above
     this->m_quorumRead[g_transID].transMsgType = msgType;
     this->m_quorumRead[g_transID].reqTime = this->m_parameters->getcurrtime();
@@ -182,7 +197,8 @@ void KVStoreAlgorithm::updateQuorumRead(MessageType msgType, string key){
     g_transID++;
 }
 
-void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
+void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key)
+{
     this->m_quorum[g_transID].transMsgType = msgType;
     this->m_quorum[g_transID].reqTime = this->m_parameters->getcurrtime();
     this->m_quorum[g_transID].reqKey = key;
@@ -190,17 +206,20 @@ void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key){
     g_transID++;
 }
 
-void KVStoreAlgorithm::clientCreate(string key, string value) {
+void KVStoreAlgorithm::clientCreate(string key, string value)
+{
     sendMessageToReplicas(findNodes(key), CREATE, key, value);
     updateQuorum(CREATE, key);
 }
 
-void KVStoreAlgorithm::clientRead(string key){
+void KVStoreAlgorithm::clientRead(string key)
+{
     sendMessageToReplicas(findNodes(key), READ, key);
     updateQuorumRead(READ, key);
 }
 
-void KVStoreAlgorithm::clientUpdate(string key, string value){
+void KVStoreAlgorithm::clientUpdate(string key, string value)
+{
     sendMessageToReplicas(findNodes(key), UPDATE, key, value);
     updateQuorum(UPDATE, key);
 }
@@ -210,12 +229,17 @@ void KVStoreAlgorithm::clientDelete(string key){
     updateQuorum(DELETE, key);
 }
 
-bool KVStoreAlgorithm::createKeyValue(string key, string value, ReplicaType replica) {
+bool KVStoreAlgorithm::createKeyValue(
+    string key,
+    string value,
+    ReplicaType replica)
+{
     Entry entry = Entry(value, m_parameters->getcurrtime(), replica);
     return this->m_dataStore->create(key, entry.convertToString());
 }
 
-string KVStoreAlgorithm::readKey(string key) {
+string KVStoreAlgorithm::readKey(string key)
+{
     string valueTuple = m_dataStore->read(key);
     if (valueTuple.empty()) return "";
 
@@ -227,16 +251,23 @@ string KVStoreAlgorithm::readKey(string key) {
     return "";
 }
 
-bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
+bool KVStoreAlgorithm::updateKeyValue(
+    string key,
+    string value,
+    ReplicaType replica)
+{
     Entry entry = Entry(value, m_parameters->getcurrtime(), replica);
     return this->m_dataStore->update(key, entry.convertToString());
 }
 
-bool KVStoreAlgorithm::deletekey(string key) {
+bool KVStoreAlgorithm::deletekey(string key)
+{
     return this->m_dataStore->deleteKey(key);
 }
 
-vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, size_t dataSize)
+vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(
+    const string& message,
+    size_t dataSize)
 {
     const string delimiter = "::";
     string token;
@@ -441,7 +472,8 @@ void KVStoreAlgorithm::processReadReplyMessage(
  *                              1) Pops messages from the queue
  *                              2) Handles the messages according to message types
  */
-void KVStoreAlgorithm::checkMessages() {
+void KVStoreAlgorithm::checkMessages()
+{
     char * data;
     int size;
 
@@ -571,7 +603,8 @@ void KVStoreAlgorithm::checkReadQuoromTimeout()
  * DESCRIPTION: Find the replicas of the given keyfunction
  *                              This function is responsible for finding the replicas of a key
  */
-vector<Node> KVStoreAlgorithm::findNodes(string key) {
+vector<Node> KVStoreAlgorithm::findNodes(string key)
+{
     size_t pos = hashFunction(key);
     vector<Node> addr_vec;
     if (m_ring.size() >= 3) {
@@ -602,7 +635,8 @@ vector<Node> KVStoreAlgorithm::findNodes(string key) {
  *
  * DESCRIPTION: Receive messages from EmulNet and push into the queue (mp2q)
  */
-bool KVStoreAlgorithm::recvLoop() {
+bool KVStoreAlgorithm::recvLoop()
+{
     if ( m_memberNode->bFailed ) {
         return false;
     }
