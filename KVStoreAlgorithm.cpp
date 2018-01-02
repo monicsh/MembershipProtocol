@@ -380,31 +380,32 @@ void KVStoreAlgorithm::processReplyMessage(
         return; // not found
     }
 
-    if (success){
-        record->second.replyCounter++;
-
-        if (record->second.replyCounter == 3) {
-            // quorom met; remove this triplet
-
-            m_quorum.erase(record);
-
-        } else if (record->second.replyCounter == 2) {
-            // log as success on basis of message type; but dont remove
-            //TODO : log on basis of message type
-            if (record->second.transMsgType == CREATE){
-                this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
-            } else if (record->second.transMsgType == UPDATE){
-                this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
-
-            } else if (record->second.transMsgType == DELETE){
-                this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
-            }
-
-        } else {
-            // =1; hold on
-        }
-
+    if (!success){
+        return;
     }
+
+    //replyCounter increment while reply message found and check quorum
+    record->second.replyCounter++;
+
+    if (record->second.replyCounter == 3) {
+        // quorom met; remove this triplet
+        m_quorum.erase(record);
+        return;
+    }
+
+     if(record->second.replyCounter == 2) {
+        // log as success on basis of message type; but dont remove
+        //TODO : log on basis of message type
+        if (record->second.transMsgType == CREATE){
+            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+        } else if (record->second.transMsgType == UPDATE){
+            this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+
+        } else if (record->second.transMsgType == DELETE){
+            this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
+        }
+     }
+
 }
 
 /**
