@@ -510,55 +510,62 @@ void KVStoreAlgorithm::checkMessages() {
         }
 				
         } // switch end
-    }
 
+        // update quorom state at end
+        checkQuoromTimeout();
+    }
+}
+
+void KVStoreAlgorithm::checkQuoromTimeout()
+{
     /*
      * This function should also ensure all READ and UPDATE operation
      * get QUORUM replies
      */
-	//Handle one count CRUD operation
-	//iterate quorum one-by-one
-	//for (auto & record : this->quorum){
-	
-	auto record  = this->m_quorum.begin();
-	while (record != this->m_quorum.end()){
-		if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5){
-			//delete the record and log it as failure
-			if (record->second.transMsgType == CREATE){
-				this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-			} else if (record->second.transMsgType == READ){
-				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-			}
-			else if (record->second.transMsgType == UPDATE){
-	 
-				this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-	 
-			} else if (record->second.transMsgType == DELETE){
-	 
-				this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-			}
-			record = this->m_quorum.erase(record);
-		} else {
-			++record;
-		}
-	}
-	
-	
-	//READQuorum
-	auto recordRead  = this->m_quorumRead.begin();
-	while (recordRead != this->m_quorumRead.end()){
-		if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5){
-				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
-			
-			recordRead = this->m_quorumRead.erase(recordRead);
-		} else {
-			++recordRead;
-		}
-	}
+    //Handle one count CRUD operation
+    //iterate quorum one-by-one
 
-	
+    auto record  = this->m_quorum.begin();
+    while (record != this->m_quorum.end()) {
+
+        //delete the record and log it as failure
+        if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+
+            if (record->second.transMsgType == CREATE){
+                this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+
+            } else if (record->second.transMsgType == READ){
+                this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
+
+            } else if (record->second.transMsgType == UPDATE){
+                this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+
+            } else if (record->second.transMsgType == DELETE){
+                this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
+            }
+
+            // remove failing qurom record
+            record = this->m_quorum.erase(record);
+            continue;
+        }
+
+        // check next
+        ++record;
+    }
+
+    //READQuorum
+    auto recordRead  = this->m_quorumRead.begin();
+    while (recordRead != this->m_quorumRead.end()) {
+
+        if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+            this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
+
+            recordRead = this->m_quorumRead.erase(recordRead);
+        } else {
+            ++recordRead;
+        }
+    }
 }
-
 
 /**
  * FUNCTION NAME: findNodes
