@@ -268,6 +268,28 @@ vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, s
 	return messageParts;
 }
 
+void KVStoreAlgorithm::processReadMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = readKey(key);
+
+    if (value.empty()) {
+        this->m_logger->logReadFail(&m_memberNode->addr, isCoordinator, transID, key);
+        return;
+    }
+
+    //READREPLY
+    Message msg = Message(transID, m_memberNode->addr, value);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logReadSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
 /**
  * FUNCTION NAME: checkMessages
  *
@@ -324,22 +346,7 @@ void KVStoreAlgorithm::checkMessages() {
         }
         case MessageType::READ:
         {
-			const string key = messageParts[3];
-			
-			const string value = readKey(key);
-
-            if (!value.empty()) {
-
-                //READREPLY
-                Message msg = Message(transID, m_memberNode->addr, value);
-                Address toaddr = fromaddr;
-				
-                this->m_logger->logReadSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-            } else{
-                this->m_logger->logReadFail(&m_memberNode->addr, isCoordinator, transID, key);
-            }
+            processReadMessage(fromaddr, isCoordinator, messageParts, transID);
             break;
         }
         case MessageType::UPDATE:

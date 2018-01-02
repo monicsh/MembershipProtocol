@@ -102,6 +102,8 @@ private:
     bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
     vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
 
+    void processReadMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
+    
 public:
     virtual ~KVStoreAlgorithm();
 	KVStoreAlgorithm(
