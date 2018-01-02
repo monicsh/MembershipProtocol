@@ -7,9 +7,6 @@
 #ifndef MP2NODE_H_
 #define MP2NODE_H_
 
-/**
- * Header files
- */
 #include "stdincludes.h"
 #include "EmulNet.h"
 #include "Node.h"
@@ -19,16 +16,11 @@
 #include "Message.h"
 #include "MessageQueue.h"
 
-/**
- * CLASS NAME: MP2Node
- *
- * DESCRIPTION: This class encapsulates all the key-value store functionality
- * 				including:
- * 				1) Ring
- * 				2) Stabilization Protocol
- * 				3) Server side CRUD APIs
- * 				4) Client side CRUD APIs
- */
+// This class encapsulates all the key-value store functionality including:
+//  1) Ring
+//  2) Stabilization Protocol
+//  3) Server side CRUD APIs
+//  4) Client side CRUD APIs
 class KVStoreAlgorithm
 {
 private:
@@ -54,18 +46,18 @@ private:
         vector<ActionOnReplicaNode> actionOnReplicaNode;
     };
 
-	// Vector holding the next two neighbors in the ring who have my replicas
-	vector<Node> m_hasMyReplicas;
+    // Vector holding the next two neighbors in the ring who have my replicas
+    vector<Node> m_hasMyReplicas;
 
-	// Vector holding the previous two neighbors in the ring whose replicas I have
-	vector<Node> m_haveReplicasOf;
+    // Vector holding the previous two neighbors in the ring whose replicas I have
+    vector<Node> m_haveReplicasOf;
 
-	vector<Node> m_ring;
-	HashTable * m_dataStore;
-	Member *m_memberNode;
-	Params *m_parameters;
-	EmulNet * m_networkEmulator;
-	Log * m_logger;
+    vector<Node> m_ring;
+    HashTable * m_dataStore;
+    Member *m_memberNode;
+    Params *m_parameters;
+    EmulNet * m_networkEmulator;
+    Log * m_logger;
     IMessageQueue * m_queue;
 
     // container for tracking quorom for READ messages
@@ -85,12 +77,10 @@ private:
     void checkReadQuoromTimeout();
     bool isTimedout(QuoromDetail& quoromDetail);
 
-    /**
-     * DESCRIPTION: Server side  API
-     *      The function does the following:
-     *      1) read/create/update/delete key value from/into the local hash table
-     *      2) Return true or false based on success or failure
-     */
+
+    // Server side  API. The function does the following:
+    //  1) read/create/update/delete key value from/into the local hash table
+    //  2) Return true or false based on success or failure
     bool createKeyValue(string key, string value, ReplicaType replica);
     string readKey(string key);
     bool updateKeyValue(string key, string value, ReplicaType replica);
@@ -114,32 +104,32 @@ private:
 
 public:
     virtual ~KVStoreAlgorithm();
-	KVStoreAlgorithm(
-         Member *memberNode,
-         Params *par,
-         EmulNet *emulNet,
-         Log *log,
-         Address *addressOfMember,
-         IMessageQueue* queue);
+    KVStoreAlgorithm(
+        Member *memberNode,
+        Params *par,
+        EmulNet *emulNet,
+        Log *log,
+        Address *addressOfMember,
+        IMessageQueue* queue);
 
     Member * getMemberNode() {
         return this->m_memberNode;
     }
 
-	// ring functionalities
-	void updateRing();
+    // ring functionalities
+    void updateRing();
 
     // client side CRUD APIs
-	void clientCreate(string key, string value);
-	void clientRead(string key);
-	void clientUpdate(string key, string value);
-	void clientDelete(string key);
+    void clientCreate(string key, string value);
+    void clientRead(string key);
+    void clientUpdate(string key, string value);
+    void clientDelete(string key);
 
-	// receive messages from Emulnet
-	bool recvLoop();
+    // receive messages from Emulnet
+    bool recvLoop();
 
     // handle messages from receiving queue
-	void checkMessages();
+    void checkMessages();
 
     // find the addresses of nodes that are responsible for a key
     vector<Node> findNodes(string key);
