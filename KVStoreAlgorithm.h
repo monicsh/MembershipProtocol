@@ -103,7 +103,7 @@ private:
     vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
 
     void processReadMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
-    
+    void processCreateMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
 public:
     virtual ~KVStoreAlgorithm();
 	KVStoreAlgorithm(

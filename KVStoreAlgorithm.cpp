@@ -290,6 +290,30 @@ void KVStoreAlgorithm::processReadMessage(
     this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 }
 
+void KVStoreAlgorithm::processCreateMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = messageParts[4];
+    const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
+
+    if (!createKeyValue(key, value, replicaType)) {
+        this->m_logger->logCreateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+        return;
+    }
+
+    //REPLY  send acknoledgement to sender
+    Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logCreateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
+
 /**
  * FUNCTION NAME: checkMessages
  *
@@ -327,21 +351,7 @@ void KVStoreAlgorithm::checkMessages() {
 
         case MessageType::CREATE:
         {
-			const string key = messageParts[3];
-			const string value = messageParts[4];
-            const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
-
-            // key - value
-            if (createKeyValue(key, value, replicaType)) {
-				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
-				Address toaddr = fromaddr;
-				
-				this->m_logger->logCreateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-            } else {
-				this->m_logger->logCreateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
-            }
+            processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
             break;
         }
         case MessageType::READ:
