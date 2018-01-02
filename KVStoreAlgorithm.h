@@ -32,62 +32,47 @@
 class KVStoreAlgorithm
 {
 private:
+    struct QuoromDetail
+    {
+        QuoromDetail() : replyCounter(0) { }
+
+        MessageType transMsgType;
+        int reqTime;
+        string reqKey;
+        unsigned replyCounter;
+    };
+
+    struct ActionOnReplicaNode
+    {
+        Node node;
+        MessageType msgType;
+        ReplicaType replicaType;
+    };
+
+    struct ViolatedNodeSet
+    {
+        vector<ActionOnReplicaNode> actionOnReplicaNode;
+    };
 
 	// Vector holding the next two neighbors in the ring who have my replicas
-	vector<Node> hasMyReplicas;
+	vector<Node> m_hasMyReplicas;
 
 	// Vector holding the previous two neighbors in the ring whose replicas I have
-	vector<Node> haveReplicasOf;
+	vector<Node> m_haveReplicasOf;
 
-	// Ring
-	vector<Node> ring;
-
-	// Hash Table
-	HashTable * ht;
-
-	// Member representing this member
-	Member *memberNode;
-
-	// Params object
-	Params *par;
-
-	// Object of EmulNet
+	vector<Node> m_ring;
+	HashTable * m_dataStore;
+	Member *m_memberNode;
+	Params *m_parameters;
 	EmulNet * m_networkEmulator;
-
-	// Object of Log
-	Log * log;
-    
+	Log * m_logger;
     IMessageQueue * m_queue;
-	
-	vector<bool> neighbourStateCheckFlag;
-	
-	struct QuoromDetail
-	{
-        QuoromDetail() : replyCounter(0) { }
-		
-		MessageType transMsgType;
-		int reqTime;
-		string reqKey;
-		unsigned replyCounter;
-	};
-	
-	// container for tracking quorom for READ messages
-	std::map<int, struct QuoromDetail> quorumRead;
-	
-	// container for tracking quorom for DELETE messages
-	std::map<int, struct QuoromDetail> quorum;
-	
-	struct ActionOnReplicaNode
-	{
-		Node node;
-		MessageType msgType;
-		ReplicaType replicaType;
-	};
-	
-	struct ViolatedNodeSet
-	{
-		vector<ActionOnReplicaNode> actionOnReplicaNode;
-	};
+
+    // container for tracking quorom for READ messages
+    std::map<int, struct QuoromDetail> m_quorumRead;
+
+    // container for tracking quorom for DELETE messages
+    std::map<int, struct QuoromDetail> m_quorum;
 
     vector<Node> getMembershipList();
     size_t hashFunction(string key);
@@ -96,9 +81,6 @@ private:
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
     void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
-
-    // coordinator dispatches messages to corresponding nodes
-    void dispatchMessages(Message message);
 
     /**
      * DESCRIPTION: Server side  API
@@ -120,7 +102,6 @@ private:
     bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
     vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
 
-
 public:
     virtual ~KVStoreAlgorithm();
 	KVStoreAlgorithm(
@@ -132,7 +113,7 @@ public:
          IMessageQueue* queue);
 
     Member * getMemberNode() {
-        return this->memberNode;
+        return this->m_memberNode;
     }
 
 	// ring functionalities
