@@ -250,15 +250,11 @@ string KVStoreAlgorithm::readKey(string key) {
 }
 
 bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
-    // Update key in local hash table and return true or false
     Entry entry = Entry(value, par->getcurrtime(), replica);
-    string keyValue = entry.convertToString();
-    return this->ht->update(key, keyValue);
-
+    return this->ht->update(key, entry.convertToString());
 }
 
 bool KVStoreAlgorithm::deletekey(string key) {
-    // Delete the key from the local hash table
     return this->ht->deleteKey(key);
 }
 
