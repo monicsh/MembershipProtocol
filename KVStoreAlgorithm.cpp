@@ -557,7 +557,7 @@ void KVStoreAlgorithm::checkQuoromTimeout()
     auto recordRead  = this->m_quorumRead.begin();
     while (recordRead != this->m_quorumRead.end()) {
 
-        if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+        if (recordRead->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
             this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
 
             recordRead = this->m_quorumRead.erase(recordRead);
