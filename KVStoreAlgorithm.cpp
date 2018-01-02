@@ -277,15 +277,8 @@ vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, s
  *                              2) Handles the messages according to message types
  */
 void KVStoreAlgorithm::checkMessages() {
-    /*
-     * Implement this. Parts of it are already implemented
-     */
     char * data;
     int size;
-
-    /*
-     * Declare your local variables here
-     */
 
     // dequeue all messages and handle them
     while ( !m_queue->empty() ) {
@@ -299,8 +292,6 @@ void KVStoreAlgorithm::checkMessages() {
         /*
          * Handle the message types here
          */
-
-
         const string message(data, data + size);
 		const vector<string> messageParts = ParseMessageIntoTokens(message, size);
 
