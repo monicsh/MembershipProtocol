@@ -530,7 +530,7 @@ void KVStoreAlgorithm::checkQuoromTimeout()
     while (record != this->m_quorum.end()) {
 
         //delete the record and log it as failure
-        if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+        if (isTimedout(record->second)) {
 
             if (record->second.transMsgType == CREATE){
                 this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
@@ -555,12 +555,17 @@ void KVStoreAlgorithm::checkQuoromTimeout()
     }
 }
 
+bool KVStoreAlgorithm::isTimedout(QuoromDetail& quoromDetail)
+{
+    return quoromDetail.replyCounter < 2 && quoromDetail.reqTime <= this->m_parameters->getcurrtime() - 5;
+}
+
 void KVStoreAlgorithm::checkReadQuoromTimeout()
 {
     auto record = this->m_quorumRead.begin();
     while (record != this->m_quorumRead.end()) {
 
-        if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5) {
+        if (isTimedout(record->second)) {
             this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
 
             // remove failing qurom record
