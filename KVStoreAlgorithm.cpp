@@ -51,15 +51,10 @@ ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
  */
 void KVStoreAlgorithm::updateRing()
 {
-    /*
-     * Step 1. Get the current membership list from Membership Protocol (mp1)
-     */
+    // Step 1. Get the current membership list from Membership Protocol (mp1)
     auto curMemList = getMembershipList();
 
-
-    /*
-     * Step 2. Construct the ring. Sort the list based on the hashCode
-     */
+    // Step 2. Construct the ring. Sort the list based on the hashCode
     sort(curMemList.begin(), curMemList.end());
 
     // has ring changed?
@@ -78,12 +73,11 @@ void KVStoreAlgorithm::updateRing()
         }
     }
 
-    /*
-     * Step 3: Run the stabilization protocol IF REQUIRED
-     */
-    // Run stabilization protocol if the hash table size is greater than zero and if there
-    // has been a changed in the ring
+    // Step 3: Run the stabilization protocol IF REQUIRED
+    // Run stabilization protocol if the hash table size is greater than zero
+    // and if there has been a changed in the ring
     if (hasRingChanged){
+
         // update ring
         this->m_ring = curMemList;
         if (!this->m_dataStore->isEmpty()) {
