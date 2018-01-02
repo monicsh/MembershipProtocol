@@ -268,6 +268,181 @@ vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, s
 	return messageParts;
 }
 
+void KVStoreAlgorithm::processReadMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = readKey(key);
+
+    if (value.empty()) {
+        this->m_logger->logReadFail(&m_memberNode->addr, isCoordinator, transID, key);
+        return;
+    }
+
+    //READREPLY
+    Message msg = Message(transID, m_memberNode->addr, value);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logReadSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
+void KVStoreAlgorithm::processCreateMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = messageParts[4];
+    const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
+
+    if (!createKeyValue(key, value, replicaType)) {
+        this->m_logger->logCreateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+        return;
+    }
+
+    //REPLY  send acknoledgement to sender
+    Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logCreateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
+void KVStoreAlgorithm::processUpdateMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+    const string value = messageParts[4];
+    const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
+
+    if (!updateKeyValue(key, value, replicaType))
+    {
+        Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
+        Address toaddr = fromaddr;
+
+        this->m_logger->logUpdateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+
+        return;
+    }
+
+    //REPLY  send acknoledgement to sender
+    Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logUpdateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
+void KVStoreAlgorithm::processDeleteMessage(
+    const Address &fromaddr,
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string key = messageParts[3];
+
+    if (!deletekey(key)) {
+        Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
+        Address toaddr = fromaddr;
+
+        this->m_logger->logDeleteFail(&m_memberNode->addr, isCoordinator, transID, key);
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+
+        return;
+    }
+
+    //REPLY  send acknoledgement to sender
+    Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
+    Address toaddr = fromaddr;
+
+    this->m_logger->logDeleteSuccess(&m_memberNode->addr, isCoordinator, transID, key);
+    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+}
+
+void KVStoreAlgorithm::processReplyMessage(
+   bool isCoordinator,
+   const vector<string> &messageParts,
+   int transID)
+{
+    const bool success("1" == messageParts[3]);
+
+    auto record = m_quorum.find(transID);
+    if (record == m_quorum.end()) {
+        return; // not found
+    }
+
+    if (!success){
+        return;
+    }
+
+    //replyCounter increment while reply message found and check quorum
+    record->second.replyCounter++;
+
+    if (record->second.replyCounter == 3) {
+        // quorom met; remove this triplet
+        m_quorum.erase(record);
+        return;
+    }
+
+    // log as success on basis of message type; but dont remove
+    if(record->second.replyCounter == 2) {
+
+        if (record->second.transMsgType == CREATE){
+            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+
+        } else if (record->second.transMsgType == UPDATE){
+            this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+
+        } else if (record->second.transMsgType == DELETE){
+            this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
+        }
+     }
+}
+
+void KVStoreAlgorithm::processReadReplyMessage(
+    bool isCoordinator,
+    const vector<string> &messageParts,
+    int transID)
+{
+    const string value = messageParts[3];
+
+    auto record = m_quorumRead.find(transID);
+    if (record == m_quorumRead.end()) {
+        return; // not found
+    }
+
+    // else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
+    // else insert new key with transID with counter 1
+    record->second.replyCounter++;
+
+    if (record->second.replyCounter == 3) {
+
+        // quorom met; remove this triplet
+        m_quorumRead.erase(record);
+
+        return;
+    }
+
+    // log as success; but dont remove
+    if (record->second.replyCounter == 2) {
+        this->m_logger->logReadSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
+
+        return;
+    }
+
+    // TODO : for =<1
+    return;
+}
+
 /**
  * FUNCTION NAME: checkMessages
  *
@@ -277,15 +452,8 @@ vector<string> KVStoreAlgorithm::ParseMessageIntoTokens(const string& message, s
  *                              2) Handles the messages according to message types
  */
 void KVStoreAlgorithm::checkMessages() {
-    /*
-     * Implement this. Parts of it are already implemented
-     */
     char * data;
     int size;
-
-    /*
-     * Declare your local variables here
-     */
 
     // dequeue all messages and handle them
     while ( !m_queue->empty() ) {
@@ -299,8 +467,6 @@ void KVStoreAlgorithm::checkMessages() {
         /*
          * Handle the message types here
          */
-
-
         const string message(data, data + size);
 		const vector<string> messageParts = ParseMessageIntoTokens(message, size);
 
@@ -312,209 +478,102 @@ void KVStoreAlgorithm::checkMessages() {
 
         switch(messageType) {
 
-        case MessageType::CREATE:
-        {
-			const string key = messageParts[3];
-			const string value = messageParts[4];
-            const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
-
-            // key - value
-            if (createKeyValue(key, value, replicaType)) {
-				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
-				Address toaddr = fromaddr;
-				
-				this->m_logger->logCreateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-            } else {
-				this->m_logger->logCreateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
+            case MessageType::CREATE:
+            {
+                processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
             }
-            break;
-        }
-        case MessageType::READ:
-        {
-			const string key = messageParts[3];
-			
-			const string value = readKey(key);
-
-            if (!value.empty()) {
-
-                //READREPLY
-                Message msg = Message(transID, m_memberNode->addr, value);
-                Address toaddr = fromaddr;
-				
-                this->m_logger->logReadSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-            } else{
-                this->m_logger->logReadFail(&m_memberNode->addr, isCoordinator, transID, key);
+            case MessageType::READ:
+            {
+                processReadMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
             }
-            break;
-        }
-        case MessageType::UPDATE:
-        {
-			const string key = messageParts[3];
-			const string value = messageParts[4];
-			const ReplicaType replicaType = ConvertToReplicaType(messageParts[5]);
-
-            // key - value
-            if (updateKeyValue(key, value, replicaType)) {
-                //REPLY  send acknoledgement to sender
-                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
-                Address toaddr = fromaddr;
-				
-				this->m_logger->logUpdateSuccess(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+            case MessageType::UPDATE:
+            {
+                processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
             }
-            else{
-                Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
-                Address toaddr = fromaddr;
-				
-				this->m_logger->logUpdateFail(&m_memberNode->addr, isCoordinator, transID, key, value);
-                this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+            case MessageType::DELETE:
+            {
+                processDeleteMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
             }
-
-            break;
-        }
-        case MessageType::DELETE:
-        {
-			const string key = messageParts[3];
-
-            if (deletekey(key)) {
-				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , true);
-				Address toaddr = fromaddr;
-				
-                this->m_logger->logDeleteSuccess(&m_memberNode->addr, isCoordinator, transID, key);
-				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-            } else {
-				
-				//REPLY  send acknoledgement to sender
-				Message msg = Message(transID, m_memberNode->addr, MessageType::REPLY , false);
-				Address toaddr = fromaddr;
-				
-                this->m_logger->logDeleteFail(&m_memberNode->addr, isCoordinator, transID, key);
-				this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+            case MessageType::REPLY:
+            {
+                processReplyMessage(isCoordinator, messageParts, transID);
+                break;
             }
-            break;
-        }
-        case MessageType::REPLY:
-        {
-			const bool success("1" == messageParts[3]);
-			
-			auto record = m_quorum.find(transID);
-			if (record == m_quorum.end()) {
-				break; // not found
-			}
-			
-			if (success){
-				record->second.replyCounter++;
-				
-				if (record->second.replyCounter == 3) {
-					// quorom met; remove this triplet
-					
-					m_quorum.erase(record);
-					
-				} else if (record->second.replyCounter == 2) {
-					// log as success on basis of message type; but dont remove
-					//TODO : log on basis of message type
-					if (record->second.transMsgType == CREATE){
-						this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
-					} else if (record->second.transMsgType == UPDATE){
-						this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
-					
-					} else if (record->second.transMsgType == DELETE){
-						this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
-					}
-					
-				} else {
-					// =1; hold on
-				}
-				
-			}
-
-            break;
-        }
-        case MessageType::READREPLY:
-        {
-			const string value = messageParts[3];
-
-			auto record = m_quorumRead.find(transID);
-			if (record == m_quorumRead.end()) {
-				break; // not found
-			}
-			
-			// else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
-			// else insert new key with transID with counter 1
-
-			record->second.replyCounter++;
-			
-			if (record->second.replyCounter == 3) {
-				// quorom met; remove this triplet
-				
-				m_quorumRead.erase(record);
-				
-			} else if (record->second.replyCounter == 2) {
-				// log as success; but dont remove
-				
-				this->m_logger->logReadSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, value);
-			} else {
-				// =1; hold on
-			}
-			
-            break;
-        }
+            case MessageType::READREPLY:
+            {
+                processReadReplyMessage(isCoordinator, messageParts, transID);
+                break;
+            }
 				
         } // switch end
+
+        // update quorom state at end
+        checkQuoromTimeout();
+        checkReadQuoromTimeout();
     }
-
-    /*
-     * This function should also ensure all READ and UPDATE operation
-     * get QUORUM replies
-     */
-	//Handle one count CRUD operation
-	//iterate quorum one-by-one
-	//for (auto & record : this->quorum){
-	
-	auto record  = this->m_quorum.begin();
-	while (record != this->m_quorum.end()){
-		if (record->second.replyCounter < 2 and record->second.reqTime <= this->m_parameters->getcurrtime() - 5){
-			//delete the record and log it as failure
-			if (record->second.transMsgType == CREATE){
-				this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-			} else if (record->second.transMsgType == READ){
-				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-			}
-			else if (record->second.transMsgType == UPDATE){
-	 
-				this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-	 
-			} else if (record->second.transMsgType == DELETE){
-	 
-				this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-			}
-			record = this->m_quorum.erase(record);
-		} else {
-			++record;
-		}
-	}
-	
-	
-	//READQuorum
-	auto recordRead  = this->m_quorumRead.begin();
-	while (recordRead != this->m_quorumRead.end()){
-		if (record->second.replyCounter < 2 and recordRead->second.reqTime <= this->m_parameters->getcurrtime() - 5){
-				this->m_logger->logReadFail(&(this->m_memberNode->addr), true, recordRead->first, recordRead->second.reqKey);
-			
-			recordRead = this->m_quorumRead.erase(recordRead);
-		} else {
-			++recordRead;
-		}
-	}
-
-	
 }
 
+/*
+ * This function should also ensure all READ and UPDATE operation
+ * get QUORUM replies
+ */
+void KVStoreAlgorithm::checkQuoromTimeout()
+{
+    auto record  = this->m_quorum.begin();
+    while (record != this->m_quorum.end()) {
+
+        //delete the record and log it as failure
+        if (isTimedout(record->second)) {
+
+            if (record->second.transMsgType == CREATE){
+                this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+
+            } else if (record->second.transMsgType == READ){
+                this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
+
+            } else if (record->second.transMsgType == UPDATE){
+                this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
+
+            } else if (record->second.transMsgType == DELETE){
+                this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
+            }
+
+            // remove failing qurom record
+            record = this->m_quorum.erase(record);
+            continue;
+        }
+
+        // check next
+        ++record;
+    }
+}
+
+bool KVStoreAlgorithm::isTimedout(QuoromDetail& quoromDetail)
+{
+    return quoromDetail.replyCounter < 2 && quoromDetail.reqTime <= this->m_parameters->getcurrtime() - 5;
+}
+
+void KVStoreAlgorithm::checkReadQuoromTimeout()
+{
+    auto record = this->m_quorumRead.begin();
+    while (record != this->m_quorumRead.end()) {
+
+        if (isTimedout(record->second)) {
+            this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
+
+            // remove failing qurom record
+            record = this->m_quorumRead.erase(record);
+            continue;
+        }
+
+        // check next
+        ++record;
+    }
+}
 
 /**
  * FUNCTION NAME: findNodes

@@ -81,6 +81,9 @@ private:
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
     void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
+    void checkQuoromTimeout();
+    void checkReadQuoromTimeout();
+    bool isTimedout(QuoromDetail& quoromDetail);
 
     /**
      * DESCRIPTION: Server side  API
@@ -101,6 +104,13 @@ private:
     // compare current state
     bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
     vector<string> ParseMessageIntoTokens(const string& message, size_t dataSize);
+
+    void processReadMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processCreateMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processUpdateMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+    void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
 
 public:
     virtual ~KVStoreAlgorithm();
