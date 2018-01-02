@@ -241,7 +241,10 @@ bool KVStoreAlgorithm::createKeyValue(
 string KVStoreAlgorithm::readKey(string key)
 {
     string valueTuple = m_dataStore->read(key);
-    if (valueTuple.empty()) return "";
+
+    if (valueTuple.empty()) {
+        return "";
+    }
 
     size_t pos = valueTuple.find(":");
     if (pos != std::string::npos) {
@@ -479,57 +482,50 @@ void KVStoreAlgorithm::checkMessages()
 
     // dequeue all messages and handle them
     while ( !m_queue->empty() ) {
-        /*
-         * Pop a message from the queue
-         */
+
         RawMessage item = m_queue->dequeue();
         data = (char *) item.elt;
         size = item.size;
 
-        /*
-         * Handle the message types here
-         */
         const string message(data, data + size);
         const vector<string> messageParts = ParseMessageIntoTokens(message, size);
-
         const int transID = stoi(messageParts[0]);
         const Address fromaddr = Address(messageParts[1]);
         const int messageType = std::stoi(messageParts[2]);
-
         const bool isCoordinator = (messageParts[1] == m_memberNode->addr.getAddress());
 
         switch(messageType) {
 
-        case MessageType::CREATE:
-        {
-            processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::READ:
-        {
-            processReadMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::UPDATE:
-        {
-            processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::DELETE:
-        {
-            processDeleteMessage(fromaddr, isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::REPLY:
-        {
-            processReplyMessage(isCoordinator, messageParts, transID);
-            break;
-        }
-        case MessageType::READREPLY:
-        {
-            processReadReplyMessage(isCoordinator, messageParts, transID);
-            break;
-        }
+            case MessageType::CREATE:
+            {
+                processCreateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::READ:
+            {
+                processReadMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::UPDATE:
+            {
+                processUpdateMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::DELETE:
+            {
+                processDeleteMessage(fromaddr, isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::REPLY:
+            {
+                processReplyMessage(isCoordinator, messageParts, transID);
+                break;
+            }
+            case MessageType::READREPLY:
+            {
+                processReadReplyMessage(isCoordinator, messageParts, transID);
+                break;
+            }
 
         } // switch end
 
@@ -607,26 +603,35 @@ vector<Node> KVStoreAlgorithm::findNodes(string key)
 {
     size_t pos = hashFunction(key);
     vector<Node> addr_vec;
-    if (m_ring.size() >= 3) {
-        // if pos <= min || pos > max, the leader is the min
-        if (pos <= m_ring.at(0).getHashCode() || pos > m_ring.at(m_ring.size()-1).getHashCode()) {
-            addr_vec.emplace_back(m_ring.at(0));
-            addr_vec.emplace_back(m_ring.at(1));
-            addr_vec.emplace_back(m_ring.at(2));
-        }
-        else {
-            // go through the ring until pos <= node
-            for (int i=1; i<m_ring.size(); i++){
-                Node addr = m_ring.at(i);
-                if (pos <= addr.getHashCode()) {
-                    addr_vec.emplace_back(addr);
-                    addr_vec.emplace_back(m_ring.at((i+1)%m_ring.size()));
-                    addr_vec.emplace_back(m_ring.at((i+2)%m_ring.size()));
-                    break;
-                }
+
+    if (m_ring.size() < 3) {
+        return addr_vec;
+    }
+
+    // if pos <= min || pos > max, the leader is the min
+    if (pos <= m_ring.at(0).getHashCode()
+        || pos > m_ring.at(m_ring.size()-1).getHashCode()) {
+
+        addr_vec.emplace_back(m_ring.at(0));
+        addr_vec.emplace_back(m_ring.at(1));
+        addr_vec.emplace_back(m_ring.at(2));
+
+    } else {
+
+        // go through the ring until pos <= node
+        for (int i=1; i<m_ring.size(); i++){
+            Node addr = m_ring.at(i);
+
+            if (pos <= addr.getHashCode()) {
+                addr_vec.emplace_back(addr);
+                addr_vec.emplace_back(m_ring.at((i+1)%m_ring.size()));
+                addr_vec.emplace_back(m_ring.at((i+2)%m_ring.size()));
+
+                break;
             }
         }
     }
+
     return addr_vec;
 }
 
@@ -637,14 +642,15 @@ vector<Node> KVStoreAlgorithm::findNodes(string key)
  */
 bool KVStoreAlgorithm::recvLoop()
 {
-    if ( m_memberNode->bFailed ) {
+    if (m_memberNode->bFailed) {
         return false;
     }
-    else {
-        bool flag;
-        flag =  m_networkEmulator->ENrecv(&(m_memberNode->addr), this->m_queue, NULL, 1);
-        return flag;
-    }
+
+    return m_networkEmulator->ENrecv(
+        &(m_memberNode->addr),
+        this->m_queue,
+        NULL,
+        1);
 }
 
 /**
@@ -658,7 +664,6 @@ bool KVStoreAlgorithm::recvLoop()
  */
 void KVStoreAlgorithm::stabilizationProtocol()
 {
-
     // 1. find out my postition in the ring
     size_t myPos = -1;
     int i;
