@@ -245,8 +245,6 @@ string KVStoreAlgorithm::readKey(string key) {
 	if (pos != std::string::npos) {
 		return valueTuple.substr(0, pos);
 	}
-
-	return "";
 }
 
 bool KVStoreAlgorithm::updateKeyValue(string key, string value, ReplicaType replica) {
