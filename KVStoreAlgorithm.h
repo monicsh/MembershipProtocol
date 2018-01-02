@@ -7,9 +7,6 @@
 #ifndef MP2NODE_H_
 #define MP2NODE_H_
 
-/**
- * Header files
- */
 #include "stdincludes.h"
 #include "EmulNet.h"
 #include "Node.h"
@@ -19,16 +16,11 @@
 #include "Message.h"
 #include "MessageQueue.h"
 
-/**
- * CLASS NAME: MP2Node
- *
- * DESCRIPTION: This class encapsulates all the key-value store functionality
- *                              including:
- *                              1) Ring
- *                              2) Stabilization Protocol
- *                              3) Server side CRUD APIs
- *                              4) Client side CRUD APIs
- */
+// This class encapsulates all the key-value store functionality including:
+//  1) Ring
+//  2) Stabilization Protocol
+//  3) Server side CRUD APIs
+//  4) Client side CRUD APIs
 class KVStoreAlgorithm
 {
 private:
@@ -85,12 +77,10 @@ private:
     void checkReadQuoromTimeout();
     bool isTimedout(QuoromDetail& quoromDetail);
 
-    /**
-     * DESCRIPTION: Server side  API
-     *      The function does the following:
-     *      1) read/create/update/delete key value from/into the local hash table
-     *      2) Return true or false based on success or failure
-     */
+
+    // Server side  API. The function does the following:
+    //  1) read/create/update/delete key value from/into the local hash table
+    //  2) Return true or false based on success or failure
     bool createKeyValue(string key, string value, ReplicaType replica);
     string readKey(string key);
     bool updateKeyValue(string key, string value, ReplicaType replica);
