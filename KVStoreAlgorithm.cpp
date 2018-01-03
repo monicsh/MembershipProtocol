@@ -545,17 +545,17 @@ void KVStoreAlgorithm::checkQuoromTimeout()
 
         //delete the record and log it as failure
         if (isTimedout(record->second)) {
-
-            if (record->second.transMsgType == CREATE){
+            MessageType transMsgtype = record->second.transMsgType;
+            if (transMsgtype == CREATE){
                 this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
 
-            } else if (record->second.transMsgType == READ){
+            } else if (transMsgtype == READ){
                 this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
 
-            } else if (record->second.transMsgType == UPDATE){
+            } else if (transMsgtype == UPDATE){
                 this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
 
-            } else if (record->second.transMsgType == DELETE){
+            } else if (transMsgtype == DELETE){
                 this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
             }
 
