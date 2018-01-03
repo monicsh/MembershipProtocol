@@ -413,17 +413,16 @@ void KVStoreAlgorithm::processReplyMessage(
 
     if (record->second.replyCounter == 3) {
         // quorom met; remove this triplet
+        if (record->second.transMsgType == CREATE){
+            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+        }
         m_quorum.erase(record);
         return;
     }
 
     // log as success on basis of message type; but dont remove
     if(record->second.replyCounter == 2) {
-
-        if (record->second.transMsgType == CREATE){
-            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
-
-        } else if (record->second.transMsgType == UPDATE){
+        if (record->second.transMsgType == UPDATE){
             this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
 
         } else if (record->second.transMsgType == DELETE){
