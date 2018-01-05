@@ -671,6 +671,39 @@ size_t KVStoreAlgorithm::myPositionInTheRing(){
 
     return myPos;
 }
+
+size_t KVStoreAlgorithm::findfirstSuccessorIndex(size_t myPos){
+    return (myPos+1)%(this->m_ring.size());
+}
+
+size_t KVStoreAlgorithm::findSecondSuccessorIndex(size_t myPos){
+    return (myPos+2)%(this->m_ring.size());
+}
+
+size_t KVStoreAlgorithm::findfirstPredeccesorIndex(size_t myPos){
+    return (myPos-1 + this->m_ring.size())%(this->m_ring.size());
+}
+
+size_t KVStoreAlgorithm::findSecondPredeccesorIndex(size_t myPos){
+    return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
+}
+
+void KVStoreAlgorithm::setHasMyReplicas(size_t succ_1, size_t succ_2){
+    // Initialize successors
+    if (this->m_hasMyReplicas.empty()){
+        this->m_hasMyReplicas.push_back(m_ring[succ_1]);
+        this->m_hasMyReplicas.push_back(m_ring[succ_2]);
+    }
+}
+
+void KVStoreAlgorithm::setHaveReplicasOf(size_t pred_1, size_t pred_2){
+    // Initialize successors and predeccesors
+    if (this->m_haveReplicasOf.empty()){
+        this->m_haveReplicasOf.push_back(m_ring[pred_1]);
+        this->m_haveReplicasOf.push_back(m_ring[pred_2]);
+    }
+}
+
 /**
  * FUNCTION NAME: stabilizationProtocol
  *
@@ -682,27 +715,20 @@ size_t KVStoreAlgorithm::myPositionInTheRing(){
  */
 void KVStoreAlgorithm::stabilizationProtocol()
 {
-    size_t myPos = myPositionInTheRing();
+    size_t myPositionInRing = myPositionInTheRing();
 
-    if (myPos == -1)
+    if (myPositionInRing == -1)
     {
         throw new std::runtime_error("stabilization_protocol_error: myPos is -1");
     }
 
-    // set successors and predeccesors index
-    size_t succ_1 = (myPos+1)%(this->m_ring.size());
-    size_t succ_2 = (myPos+2)%(this->m_ring.size());
-    size_t pred_1 = (myPos-1 + this->m_ring.size())%(this->m_ring.size());
-    size_t pred_2 = (myPos-2 + this->m_ring.size())%(this->m_ring.size());
+    size_t successorFirstIndex = findfirstSuccessorIndex(myPositionInRing);
+    size_t successorSecondIndex = findSecondSuccessorIndex(myPositionInRing);
+    size_t predeccesorFirstIndex = findfirstPredeccesorIndex(myPositionInRing);
+    size_t predeccesorSecondIndex = findSecondPredeccesorIndex(myPositionInRing);
 
-    // Initialize successors and predeccesors
-    if (this->m_hasMyReplicas.empty() && this->m_haveReplicasOf.empty()){
-
-        this->m_hasMyReplicas.push_back(m_ring[succ_1]);
-        this->m_hasMyReplicas.push_back(m_ring[succ_2]);
-        this->m_haveReplicasOf.push_back(m_ring[pred_1]);
-        this->m_haveReplicasOf.push_back(m_ring[pred_2]);
-    }
+    setHasMyReplicas(successorFirstIndex, successorSecondIndex);
+    setHaveReplicasOf(predeccesorFirstIndex, predeccesorSecondIndex);
 
     // iterate key-value hash table
     for (auto it = this->m_dataStore->hashTable.begin();
@@ -744,23 +770,23 @@ void KVStoreAlgorithm::stabilizationProtocol()
             //check others positions
             switch (myPosInReplica){
             case 0:
-                if (m_ring[succ_1].getAddress() != m_hasMyReplicas[0].getAddress() and
-                    m_ring[succ_1].getAddress() != m_hasMyReplicas[1].getAddress()){
+                if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
+                    m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
                     //new neighbor encounter
                     // Send Create message to new node for key, value, SECONDARY
 
-                    Address toaddr = m_ring[succ_1].nodeAddress;
+                    Address toaddr = m_ring[successorFirstIndex].nodeAddress;
                     Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
                     this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 
                 }
 
-                if (m_ring[succ_2].getAddress() != m_hasMyReplicas[0].getAddress() and
-                    m_ring[succ_2].getAddress() != m_hasMyReplicas[1].getAddress()){
+                if (m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
+                    m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
                     //new neighbor encounter
                     // Send Create message to new node for key, value, SECONDARY
 
-                    Address toaddr = m_ring[succ_2].nodeAddress;
+                    Address toaddr = m_ring[successorSecondIndex].nodeAddress;
                     Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
                     this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
 
@@ -768,12 +794,12 @@ void KVStoreAlgorithm::stabilizationProtocol()
                 g_transID++;
                 break;
             case 1:
-                if (m_ring[succ_1].getAddress() != m_hasMyReplicas[0].getAddress()){
+                if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
                     //new neighbor encounter
                     // Send Create message to new node for key, value, SECONDARY
-                    if (m_ring[pred_1].getAddress() != m_haveReplicasOf[0].getAddress()) {
-                        Address toaddrSucc = m_ring[succ_1].nodeAddress;
-                        Address toaddrPred = m_ring[pred_1].nodeAddress;
+                    if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()) {
+                        Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
+                        Address toaddrPred = m_ring[predeccesorFirstIndex].nodeAddress;
                         Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
                         Message msgToPred= Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, PRIMARY);
                         this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrSucc, msgToSucc.toString());
@@ -789,10 +815,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
 
             m_hasMyReplicas.clear();
             m_haveReplicasOf.clear();
-            m_hasMyReplicas.push_back(m_ring[succ_1]);
-            m_hasMyReplicas.push_back(m_ring[succ_2]);
-            m_haveReplicasOf.push_back(m_ring[pred_1]);
-            m_haveReplicasOf.push_back(m_ring[pred_2]);
+            m_hasMyReplicas.push_back(m_ring[successorFirstIndex]);
+            m_hasMyReplicas.push_back(m_ring[successorSecondIndex]);
+            m_haveReplicasOf.push_back(m_ring[predeccesorFirstIndex]);
+            m_haveReplicasOf.push_back(m_ring[predeccesorSecondIndex]);
         }
     }
 

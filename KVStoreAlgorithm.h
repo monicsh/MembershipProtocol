@@ -89,6 +89,12 @@ private:
     ReplicaType ConvertToReplicaType(string replicaTypeString);
 
     size_t myPositionInTheRing();
+    size_t findfirstSuccessorIndex(size_t myPos);
+    size_t findSecondSuccessorIndex(size_t myPos);
+    size_t findfirstPredeccesorIndex(size_t myPos);
+    size_t findSecondPredeccesorIndex(size_t myPos);
+    void setHasMyReplicas(size_t succ_1, size_t succ_2);
+    void setHaveReplicasOf(size_t pred_1, size_t pred_2);
     // stabilization protocol - handle multiple failures
     void stabilizationProtocol();
 
