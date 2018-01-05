@@ -653,6 +653,25 @@ bool KVStoreAlgorithm::recvLoop()
 }
 
 /**
+ * Required fields for Stablizer
+ m_ring
+m_memberNode
+ */
+
+size_t KVStoreAlgorithm::myPositionInTheRing(){
+    // 1. find out my postition in the ring
+    size_t myPos = -1;
+    for (int i = 0; i < this->m_ring.size(); i++) {
+        if (m_ring[i].nodeAddress == this->m_memberNode->addr){
+            myPos = i;          // found pos
+
+            break;
+        }
+    }
+
+    return myPos;
+}
+/**
  * FUNCTION NAME: stabilizationProtocol
  *
  * DESCRIPTION: This runs the stabilization protocol in case of Node joins and leaves
@@ -663,16 +682,7 @@ bool KVStoreAlgorithm::recvLoop()
  */
 void KVStoreAlgorithm::stabilizationProtocol()
 {
-    // 1. find out my postition in the ring
-    size_t myPos = -1;
-    int i;
-    for (i = 0; i < this->m_ring.size(); i++) {
-        if (m_ring[i].nodeAddress == this->m_memberNode->addr){
-            myPos = i;          // found pos
-
-            break;
-        }
-    }
+    size_t myPos = myPositionInTheRing();
 
     if (myPos == -1)
     {
@@ -680,10 +690,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
     }
 
     // set successors and predeccesors index
-    size_t succ_1 = (i+1)%(this->m_ring.size());
-    size_t succ_2 = (i+2)%(this->m_ring.size());
-    size_t pred_1 = (i-1 + this->m_ring.size())%(this->m_ring.size());
-    size_t pred_2 = (i-2 + this->m_ring.size())%(this->m_ring.size());
+    size_t succ_1 = (myPos+1)%(this->m_ring.size());
+    size_t succ_2 = (myPos+2)%(this->m_ring.size());
+    size_t pred_1 = (myPos-1 + this->m_ring.size())%(this->m_ring.size());
+    size_t pred_2 = (myPos-2 + this->m_ring.size())%(this->m_ring.size());
 
     // Initialize successors and predeccesors
     if (this->m_hasMyReplicas.empty() && this->m_haveReplicasOf.empty()){

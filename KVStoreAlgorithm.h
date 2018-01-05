@@ -88,6 +88,7 @@ private:
 
     ReplicaType ConvertToReplicaType(string replicaTypeString);
 
+    size_t myPositionInTheRing();
     // stabilization protocol - handle multiple failures
     void stabilizationProtocol();
 
