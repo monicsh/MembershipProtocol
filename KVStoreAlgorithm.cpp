@@ -704,6 +704,54 @@ void KVStoreAlgorithm::setHaveReplicasOf(size_t pred_1, size_t pred_2){
     }
 }
 
+void KVStoreAlgorithm::remakeReplicaSetImPrimary(
+                                                 const string &key,
+                                                 const string &keyValue,
+                                                 size_t successorFirstIndex,
+                                                 size_t successorSecondIndex)
+{
+    if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
+        m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
+        //new neighbor encounter
+        // Send Create message to new node for key, value, SECONDARY
+
+        Address toaddr = m_ring[successorFirstIndex].nodeAddress;
+        Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+
+    }
+
+    if (m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
+        m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
+        //new neighbor encounter
+        // Send Create message to new node for key, value, SECONDARY
+
+        Address toaddr = m_ring[successorSecondIndex].nodeAddress;
+        Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
+        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
+
+    }
+    g_transID++;
+}
+
+void KVStoreAlgorithm::remakeReplicaSetImSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex) {
+    if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
+        //new neighbor encounter
+        // Send Create message to new node for key, value, SECONDARY
+        if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()) {
+            Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
+            Address toaddrPred = m_ring[predeccesorFirstIndex].nodeAddress;
+            Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
+            Message msgToPred= Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, PRIMARY);
+            this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrSucc, msgToSucc.toString());
+            this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrPred, msgToPred.toString());
+            g_transID++;
+        }
+
+    }
+}
+
+
 /**
  * FUNCTION NAME: stabilizationProtocol
  *
@@ -770,44 +818,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
             //check others positions
             switch (myPosInReplica){
             case 0:
-                if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
-                    m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-                    //new neighbor encounter
-                    // Send Create message to new node for key, value, SECONDARY
-
-                    Address toaddr = m_ring[successorFirstIndex].nodeAddress;
-                    Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
-                    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-                }
-
-                if (m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
-                    m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-                    //new neighbor encounter
-                    // Send Create message to new node for key, value, SECONDARY
-
-                    Address toaddr = m_ring[successorSecondIndex].nodeAddress;
-                    Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
-                    this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-                }
-                g_transID++;
+                    remakeReplicaSetImPrimary(key, keyValue, successorFirstIndex, successorSecondIndex);
                 break;
             case 1:
-                if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
-                    //new neighbor encounter
-                    // Send Create message to new node for key, value, SECONDARY
-                    if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()) {
-                        Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
-                        Address toaddrPred = m_ring[predeccesorFirstIndex].nodeAddress;
-                        Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
-                        Message msgToPred= Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, PRIMARY);
-                        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrSucc, msgToSucc.toString());
-                        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrPred, msgToPred.toString());
-                        g_transID++;
-                    }
-
-                }
+                    remakeReplicaSetImSecondary(key, keyValue, predeccesorFirstIndex, successorFirstIndex);
                 break;
             case 2:
                 break;

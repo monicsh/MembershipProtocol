@@ -95,6 +95,9 @@ private:
     size_t findSecondPredeccesorIndex(size_t myPos);
     void setHasMyReplicas(size_t succ_1, size_t succ_2);
     void setHaveReplicasOf(size_t pred_1, size_t pred_2);
+    void remakeReplicaSetImPrimary(const string &key, const string &keyValue, size_t successorFirstIndex, size_t successorSecondIndex);
+    void remakeReplicaSetImSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex);
+    
     // stabilization protocol - handle multiple failures
     void stabilizationProtocol();
 
