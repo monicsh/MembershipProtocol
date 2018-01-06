@@ -712,9 +712,6 @@ void KVStoreAlgorithm::remakeReplicaSetImPrimary(
 {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
         m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-        //new neighbor encounter
-        // Send Create message to new node for key, value, SECONDARY
-
         Address toaddr = m_ring[successorFirstIndex].nodeAddress;
         Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
         this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
@@ -723,9 +720,6 @@ void KVStoreAlgorithm::remakeReplicaSetImPrimary(
 
     if (m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
         m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-        //new neighbor encounter
-        // Send Create message to new node for key, value, SECONDARY
-
         Address toaddr = m_ring[successorSecondIndex].nodeAddress;
         Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
         this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
@@ -736,9 +730,7 @@ void KVStoreAlgorithm::remakeReplicaSetImPrimary(
 
 void KVStoreAlgorithm::remakeReplicaSetImSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex) {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
-        //new neighbor encounter
-        // Send Create message to new node for key, value, SECONDARY
-        if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()) {
+        if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()){
             Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
             Address toaddrPred = m_ring[predeccesorFirstIndex].nodeAddress;
             Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
@@ -818,10 +810,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
             //check others positions
             switch (myPosInReplica){
             case 0:
-                    remakeReplicaSetImPrimary(key, keyValue, successorFirstIndex, successorSecondIndex);
+                remakeReplicaSetImPrimary(key, keyValue, successorFirstIndex, successorSecondIndex);
                 break;
             case 1:
-                    remakeReplicaSetImSecondary(key, keyValue, predeccesorFirstIndex, successorFirstIndex);
+                remakeReplicaSetImSecondary(key, keyValue, predeccesorFirstIndex, successorFirstIndex);
                 break;
             case 2:
                 break;
