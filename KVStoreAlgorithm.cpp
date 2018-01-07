@@ -615,19 +615,19 @@ vector<Node> KVStoreAlgorithm::findNodes(string key)
         addr_vec.emplace_back(m_ring.at(1));
         addr_vec.emplace_back(m_ring.at(2));
 
-    } else {
+        return addr_vec;
+    }
 
-        // go through the ring until pos <= node
-        for (int i=1; i<m_ring.size(); i++){
-            Node addr = m_ring.at(i);
+    // go through the ring until pos <= node
+    for (int i=1; i<m_ring.size(); i++){
+        Node addr = m_ring.at(i);
 
-            if (pos <= addr.getHashCode()) {
-                addr_vec.emplace_back(addr);
-                addr_vec.emplace_back(m_ring.at((i+1)%m_ring.size()));
-                addr_vec.emplace_back(m_ring.at((i+2)%m_ring.size()));
+        if (pos <= addr.getHashCode()) {
+            addr_vec.emplace_back(addr);
+            addr_vec.emplace_back(m_ring.at((i+1)%m_ring.size()));
+            addr_vec.emplace_back(m_ring.at((i+2)%m_ring.size()));
 
-                break;
-            }
+            break;
         }
     }
 
@@ -776,22 +776,23 @@ void KVStoreAlgorithm::stabilizationProtocol()
          it++) {
 
         string key = it->first;
-        string value = it->second;
-        //extract replicaType from value string
-        Entry * entry = new Entry(value);
+        Entry * entry = new Entry(it->second);
         ReplicaType replicaType = entry->replica;
-        string keyValue = entry->value;
+        string value = entry->value;
 
         vector<Node> replicaSet = findNodes(key);
 
-        if (replicaSet.size() < 3){ return; }
+        // todo: fix this for early exit
+        if (replicaSet.size() < 3) {
+            return;
+        }
 
+        //todo move to tfunction
         //check this node exists in replicaSet
-        int r;
         int myPosInReplica = -1;
-        for (r = 0; r < replicaSet.size(); r++){
-            if (replicaSet[r].nodeAddress == this->m_memberNode->addr){
-                myPosInReplica = r;
+        for (int i = 0; i < replicaSet.size(); i++){
+            if (replicaSet[i].nodeAddress == this->m_memberNode->addr){
+                myPosInReplica = i;
                 break;
             }
         }
@@ -810,10 +811,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
             //check others positions
             switch (myPosInReplica){
             case 0:
-                remakeReplicaSetImPrimary(key, keyValue, successorFirstIndex, successorSecondIndex);
+                remakeReplicaSetImPrimary(key, value, successorFirstIndex, successorSecondIndex);
                 break;
             case 1:
-                remakeReplicaSetImSecondary(key, keyValue, predeccesorFirstIndex, successorFirstIndex);
+                remakeReplicaSetImSecondary(key, value, predeccesorFirstIndex, successorFirstIndex);
                 break;
             case 2:
                 break;
