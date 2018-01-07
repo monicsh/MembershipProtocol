@@ -111,6 +111,9 @@ private:
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+    int findMyPosInReplicaSet(vector<Node> &replicaSet);
+    static string parseValue(string valueToParse);
+    ReplicaType parseReplicaType(string valueToParse);
 
 public:
     virtual ~KVStoreAlgorithm();

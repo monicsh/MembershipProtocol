@@ -743,16 +743,27 @@ void KVStoreAlgorithm::remakeReplicaSetImSecondary(const string &key, const stri
     }
 }
 
+int KVStoreAlgorithm::findMyPosInReplicaSet(vector<Node> &replicaSet)
+{
+    for (int i = 0; i < replicaSet.size(); i++){
+        if (replicaSet[i].nodeAddress == this->m_memberNode->addr){
+            return i;
+        }
+    }
 
-/**
- * FUNCTION NAME: stabilizationProtocol
- *
- * DESCRIPTION: This runs the stabilization protocol in case of Node joins and leaves
- *                              It ensures that there always 3 copies of all keys in the DHT at all times
- *                              The function does the following:
- *                              1) Ensures that there are three "CORRECT" replicas of all the keys in spite of failures and joins
- *                              Note:- "CORRECT" replicas implies that every key is replicated in its two neighboring nodes in the ring
- */
+    return -1;
+}
+
+ReplicaType KVStoreAlgorithm::parseReplicaType(string valueToParse)
+{
+    return Entry(valueToParse).replica;
+}
+
+string KVStoreAlgorithm::parseValue(string valueToParse)
+{
+    return Entry(valueToParse).value;
+}
+
 void KVStoreAlgorithm::stabilizationProtocol()
 {
     size_t myPositionInRing = myPositionInTheRing();
@@ -776,9 +787,8 @@ void KVStoreAlgorithm::stabilizationProtocol()
          it++) {
 
         string key = it->first;
-        Entry * entry = new Entry(it->second);
-        ReplicaType replicaType = entry->replica;
-        string value = entry->value;
+        string value = parseValue(it->second);
+        ReplicaType replicaType = parseReplicaType(it->second);
 
         vector<Node> replicaSet = findNodes(key);
 
@@ -787,46 +797,42 @@ void KVStoreAlgorithm::stabilizationProtocol()
             return;
         }
 
-        //todo move to tfunction
         //check this node exists in replicaSet
-        int myPosInReplica = -1;
-        for (int i = 0; i < replicaSet.size(); i++){
-            if (replicaSet[i].nodeAddress == this->m_memberNode->addr){
-                myPosInReplica = i;
-                break;
-            }
-        }
-
-        // TODO : delete record if does not exist in replica set
+        int myPosInReplica = findMyPosInReplicaSet(replicaSet);
 
         // node exists in the replicaSet
-        if (myPosInReplica >= 0){
-            //check my position changed?
-            if ((int)(replicaType) != myPosInReplica){
-                // position changed
-                // update replicatype
-                entry->replica = (ReplicaType)(myPosInReplica);
-            }
+        if (myPosInReplica < 0) {
+            // todo : throw exception ?
+            return ;
+        }
 
-            //check others positions
-            switch (myPosInReplica){
-            case 0:
+        // if position changed, update replicatype
+        if ((int)(replicaType) != myPosInReplica){
+            Entry entry = Entry(it->second);
+            entry.replica = (ReplicaType) myPosInReplica;
+            it->second = entry.convertToString();
+        }
+
+        switch (myPosInReplica) {
+            case 0: // i m primary
                 remakeReplicaSetImPrimary(key, value, successorFirstIndex, successorSecondIndex);
                 break;
-            case 1:
+            case 1: // i am seconday
                 remakeReplicaSetImSecondary(key, value, predeccesorFirstIndex, successorFirstIndex);
                 break;
-            case 2:
+            case 2: // i am tertiary
+                // todo
                 break;
-            }
-
-            m_hasMyReplicas.clear();
-            m_haveReplicasOf.clear();
-            m_hasMyReplicas.push_back(m_ring[successorFirstIndex]);
-            m_hasMyReplicas.push_back(m_ring[successorSecondIndex]);
-            m_haveReplicasOf.push_back(m_ring[predeccesorFirstIndex]);
-            m_haveReplicasOf.push_back(m_ring[predeccesorSecondIndex]);
+            default:
+                //throw new std::runtime_error("stabilization_protocol_error: myPosInReplica is not known");
+                break;
         }
-    }
 
+        m_hasMyReplicas.clear();
+        m_haveReplicasOf.clear();
+        m_hasMyReplicas.push_back(m_ring[successorFirstIndex]);
+        m_hasMyReplicas.push_back(m_ring[successorSecondIndex]);
+        m_haveReplicasOf.push_back(m_ring[predeccesorFirstIndex]);
+        m_haveReplicasOf.push_back(m_ring[predeccesorSecondIndex]);
+    }
 }
