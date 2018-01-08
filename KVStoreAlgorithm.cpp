@@ -673,6 +673,9 @@ int KVStoreAlgorithm::myPositionInTheRing(){
 }
 
 int KVStoreAlgorithm::findfirstSuccessorIndex(int myPos){
+    if (myPos < 0){
+        return -1;
+    }
     return (myPos+1)%(this->m_ring.size());
 }
 
