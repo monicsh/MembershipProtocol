@@ -773,10 +773,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
         throw new std::runtime_error("stabilization_protocol_error: myPos is -1");
     }
 
-    size_t successorFirstIndex = findfirstSuccessorIndex(myPositionInRing);
-    size_t successorSecondIndex = findSecondSuccessorIndex(myPositionInRing);
-    size_t predeccesorFirstIndex = findfirstPredeccesorIndex(myPositionInRing);
-    size_t predeccesorSecondIndex = findSecondPredeccesorIndex(myPositionInRing);
+    int successorFirstIndex = findfirstSuccessorIndex(myPositionInRing);
+    int successorSecondIndex = findSecondSuccessorIndex(myPositionInRing);
+    int predeccesorFirstIndex = findfirstPredeccesorIndex(myPositionInRing);
+    int predeccesorSecondIndex = findSecondPredeccesorIndex(myPositionInRing);
 
     setHasMyReplicas(successorFirstIndex, successorSecondIndex);
     setHaveReplicasOf(predeccesorFirstIndex, predeccesorSecondIndex);
