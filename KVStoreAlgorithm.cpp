@@ -652,12 +652,6 @@ bool KVStoreAlgorithm::recvLoop()
         1);
 }
 
-/**
- * Required fields for Stablizer
- m_ring
-m_memberNode
- */
-
 int KVStoreAlgorithm::myPositionInTheRing(){
     // 1. find out my postition in the ring
     int myPos = -1;
