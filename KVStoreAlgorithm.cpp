@@ -658,9 +658,9 @@ bool KVStoreAlgorithm::recvLoop()
 m_memberNode
  */
 
-size_t KVStoreAlgorithm::myPositionInTheRing(){
+int KVStoreAlgorithm::myPositionInTheRing(){
     // 1. find out my postition in the ring
-    size_t myPos = -1;
+    int myPos = -1;
     for (int i = 0; i < this->m_ring.size(); i++) {
         if (m_ring[i].nodeAddress == this->m_memberNode->addr){
             myPos = i;          // found pos
@@ -672,23 +672,23 @@ size_t KVStoreAlgorithm::myPositionInTheRing(){
     return myPos;
 }
 
-size_t KVStoreAlgorithm::findfirstSuccessorIndex(size_t myPos){
+int KVStoreAlgorithm::findfirstSuccessorIndex(int myPos){
     return (myPos+1)%(this->m_ring.size());
 }
 
-size_t KVStoreAlgorithm::findSecondSuccessorIndex(size_t myPos){
+int KVStoreAlgorithm::findSecondSuccessorIndex(int myPos){
     return (myPos+2)%(this->m_ring.size());
 }
 
-size_t KVStoreAlgorithm::findfirstPredeccesorIndex(size_t myPos){
+int KVStoreAlgorithm::findfirstPredeccesorIndex(int myPos){
     return (myPos-1 + this->m_ring.size())%(this->m_ring.size());
 }
 
-size_t KVStoreAlgorithm::findSecondPredeccesorIndex(size_t myPos){
+int KVStoreAlgorithm::findSecondPredeccesorIndex(int myPos){
     return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
 }
 
-void KVStoreAlgorithm::setHasMyReplicas(size_t succ_1, size_t succ_2){
+void KVStoreAlgorithm::setHasMyReplicas(int succ_1, int succ_2){
     // Initialize successors
     if (this->m_hasMyReplicas.empty()){
         this->m_hasMyReplicas.push_back(m_ring[succ_1]);
@@ -696,7 +696,7 @@ void KVStoreAlgorithm::setHasMyReplicas(size_t succ_1, size_t succ_2){
     }
 }
 
-void KVStoreAlgorithm::setHaveReplicasOf(size_t pred_1, size_t pred_2){
+void KVStoreAlgorithm::setHaveReplicasOf(int pred_1, int pred_2){
     // Initialize successors and predeccesors
     if (this->m_haveReplicasOf.empty()){
         this->m_haveReplicasOf.push_back(m_ring[pred_1]);
@@ -707,8 +707,8 @@ void KVStoreAlgorithm::setHaveReplicasOf(size_t pred_1, size_t pred_2){
 void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromPrimary(
                                                  const string &key,
                                                  const string &keyValue,
-                                                 size_t successorFirstIndex,
-                                                 size_t successorSecondIndex)
+                                                 int successorFirstIndex,
+                                                 int successorSecondIndex)
 {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
         m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
@@ -728,7 +728,7 @@ void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromPrimary(
     g_transID++;
 }
 
-void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex) {
+void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex) {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
         if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()){
             Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
@@ -766,7 +766,7 @@ string KVStoreAlgorithm::parseValue(string valueToParse)
 
 void KVStoreAlgorithm::stabilizationProtocol()
 {
-    size_t myPositionInRing = myPositionInTheRing();
+    int myPositionInRing = myPositionInTheRing();
 
     if (myPositionInRing == -1)
     {
