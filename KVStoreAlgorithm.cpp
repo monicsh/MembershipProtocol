@@ -768,7 +768,7 @@ void KVStoreAlgorithm::stabilizationProtocol()
 {
     int myPositionInRing = myPositionInTheRing();
 
-    if (myPositionInRing == -1)
+    if (myPositionInRing < 0)
     {
         throw new std::runtime_error("stabilization_protocol_error: myPos is -1");
     }
