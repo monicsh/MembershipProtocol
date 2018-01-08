@@ -93,8 +93,8 @@ private:
     int findSecondSuccessorIndex(int myPos);
     int findfirstPredeccesorIndex(int myPos);
     int findSecondPredeccesorIndex(int myPos);
-    void setHasMyReplicas(int succ_1, int succ_2);
-    void setHaveReplicasOf(int pred_1, int pred_2);
+    void setHasMyReplicasIfEmpty(int succ_1, int succ_2);
+    void setHaveReplicasOfIfEmpty(int pred_1, int pred_2);
     void sendMessageToUpdateReplicaInfoFromPrimary(const string &key, const string &keyValue, int successorFirstIndex, int successorSecondIndex);
     void sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex);
     

@@ -694,7 +694,7 @@ int KVStoreAlgorithm::findSecondPredeccesorIndex(int myPos){
     return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
 }
 
-void KVStoreAlgorithm::setHasMyReplicas(int succ_1, int succ_2){
+void KVStoreAlgorithm::setHasMyReplicasIfEmpty(int succ_1, int succ_2){
     if (!this->m_hasMyReplicas.empty()){
         return;
     }
@@ -703,7 +703,7 @@ void KVStoreAlgorithm::setHasMyReplicas(int succ_1, int succ_2){
     this->m_hasMyReplicas.push_back(m_ring[succ_2]);
 }
 
-void KVStoreAlgorithm::setHaveReplicasOf(int pred_1, int pred_2){
+void KVStoreAlgorithm::setHaveReplicasOfIfEmpty(int pred_1, int pred_2){
     if (!this->m_haveReplicasOf.empty()){
         return;
     }
@@ -785,8 +785,8 @@ void KVStoreAlgorithm::stabilizationProtocol()
     int predeccesorFirstIndex = findfirstPredeccesorIndex(myPositionInRing);
     int predeccesorSecondIndex = findSecondPredeccesorIndex(myPositionInRing);
 
-    setHasMyReplicas(successorFirstIndex, successorSecondIndex);
-    setHaveReplicasOf(predeccesorFirstIndex, predeccesorSecondIndex);
+    setHasMyReplicasIfEmpty(successorFirstIndex, successorSecondIndex);
+    setHaveReplicasOfIfEmpty(predeccesorFirstIndex, predeccesorSecondIndex);
 
     // iterate key-value hash table
     for (auto it = this->m_dataStore->hashTable.begin();
