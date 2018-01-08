@@ -704,7 +704,7 @@ void KVStoreAlgorithm::setHaveReplicasOf(size_t pred_1, size_t pred_2){
     }
 }
 
-void KVStoreAlgorithm::remakeReplicaSetImPrimary(
+void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromPrimary(
                                                  const string &key,
                                                  const string &keyValue,
                                                  size_t successorFirstIndex,
@@ -728,7 +728,7 @@ void KVStoreAlgorithm::remakeReplicaSetImPrimary(
     g_transID++;
 }
 
-void KVStoreAlgorithm::remakeReplicaSetImSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex) {
+void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, size_t predeccesorFirstIndex, size_t successorFirstIndex) {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
         if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()){
             Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
@@ -815,10 +815,10 @@ void KVStoreAlgorithm::stabilizationProtocol()
 
         switch (myPosInReplica) {
             case 0: // i m primary
-                remakeReplicaSetImPrimary(key, value, successorFirstIndex, successorSecondIndex);
+                sendMessageToUpdateReplicaInfoFromPrimary(key, value, successorFirstIndex, successorSecondIndex);
                 break;
             case 1: // i am seconday
-                remakeReplicaSetImSecondary(key, value, predeccesorFirstIndex, successorFirstIndex);
+                sendMessageToUpdateReplicaInfoFromSecondary(key, value, predeccesorFirstIndex, successorFirstIndex);
                 break;
             case 2: // i am tertiary
                 // todo
