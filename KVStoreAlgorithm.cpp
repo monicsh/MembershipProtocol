@@ -673,28 +673,28 @@ int KVStoreAlgorithm::myPositionInTheRing(){
 }
 
 int KVStoreAlgorithm::findfirstSuccessorIndex(int myPos){
-    if (myPos == -1){
+    if (myPos < 0){
         return -1;
     }
     return (myPos+1)%(this->m_ring.size());
 }
 
 int KVStoreAlgorithm::findSecondSuccessorIndex(int myPos){
-    if (myPos == -1){
+    if (myPos < 0){
         return -1;
     }
     return (myPos+2)%(this->m_ring.size());
 }
 
 int KVStoreAlgorithm::findfirstPredeccesorIndex(int myPos){
-    if (myPos == -1){
+    if (myPos < 0){
         return -1;
     }
     return (myPos-1 + this->m_ring.size())%(this->m_ring.size());
 }
 
 int KVStoreAlgorithm::findSecondPredeccesorIndex(int myPos){
-    if (myPos == -1){
+    if (myPos < 0){
         return -1;
     }
     return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
