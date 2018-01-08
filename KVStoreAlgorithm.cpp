@@ -701,19 +701,20 @@ int KVStoreAlgorithm::findSecondPredeccesorIndex(int myPos){
 }
 
 void KVStoreAlgorithm::setHasMyReplicas(int succ_1, int succ_2){
-    // Initialize successors
-    if (this->m_hasMyReplicas.empty()){
-        this->m_hasMyReplicas.push_back(m_ring[succ_1]);
-        this->m_hasMyReplicas.push_back(m_ring[succ_2]);
+    if (!this->m_hasMyReplicas.empty()){
+        return;
     }
+
+    this->m_hasMyReplicas.push_back(m_ring[succ_1]);
+    this->m_hasMyReplicas.push_back(m_ring[succ_2]);
 }
 
 void KVStoreAlgorithm::setHaveReplicasOf(int pred_1, int pred_2){
-    // Initialize successors and predeccesors
-    if (this->m_haveReplicasOf.empty()){
-        this->m_haveReplicasOf.push_back(m_ring[pred_1]);
-        this->m_haveReplicasOf.push_back(m_ring[pred_2]);
+    if (!this->m_haveReplicasOf.empty()){
+        return;
     }
+    this->m_haveReplicasOf.push_back(m_ring[pred_1]);
+    this->m_haveReplicasOf.push_back(m_ring[pred_2]);
 }
 
 void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromPrimary(
