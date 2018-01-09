@@ -88,6 +88,16 @@ private:
 
     ReplicaType ConvertToReplicaType(string replicaTypeString);
 
+    int myPositionInTheRing();
+    int findfirstSuccessorIndex(int myPos);
+    int findSecondSuccessorIndex(int myPos);
+    int findfirstPredeccesorIndex(int myPos);
+    int findSecondPredeccesorIndex(int myPos);
+    void setHasMyReplicasIfEmpty(int succ_1, int succ_2);
+    void setHaveReplicasOfIfEmpty(int pred_1, int pred_2);
+    void sendMessageToUpdateReplicaInfoFromPrimary(const string &key, const string &keyValue, int successorFirstIndex, int successorSecondIndex);
+    void sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex);
+    
     // stabilization protocol - handle multiple failures
     void stabilizationProtocol();
 
@@ -101,6 +111,9 @@ private:
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+    int findMyPosInReplicaSet(vector<Node> &replicaSet);
+    static string parseValue(string valueToParse);
+    ReplicaType parseReplicaType(string valueToParse);
 
 public:
     virtual ~KVStoreAlgorithm();
