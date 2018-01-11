@@ -211,7 +211,7 @@ void Stabilizer::initRing(){
     this->m_ring = curMemList;
     return;
 }
-void Stabilizer::StabilizationProtocol()
+void Stabilizer::stabilizationProtocol()
 {
 
     initRing();

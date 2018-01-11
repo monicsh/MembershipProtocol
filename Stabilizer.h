@@ -18,16 +18,12 @@
 #include "Node.h"
 #include "KVStoreAlgorithm.h"
 
-
-#endif /* Stabilizer_h */
-
 class Stabilizer
 {
 private:
     HashTable *m_dataStore;
     Member *m_memberNode;
     EmulNet *m_networkEmulator;
-    KVStoreAlgorithm *m_kv;
     vector<Node> m_hasMyReplicas;
     vector<Node> m_haveReplicasOf;
     vector<Node> m_ring;
@@ -53,5 +49,8 @@ public:
 //    vector<Node> m_hasMyReplicas; KVStoreAlgorithm for these variable
 //    vector<Node> m_haveReplicasOf;
     Stabilizer(HashTable *dataStore, Member *memberNode, EmulNet * networkEmulator, vector<Node> hasMyReplicas, vector<Node> haveReplicasOf );
-    void StabilizationProtocol();
+    void stabilizationProtocol();
 };
+
+#endif /* Stabilizer_h */
+

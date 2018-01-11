@@ -15,6 +15,7 @@
 #include "Params.h"
 #include "Message.h"
 #include "MessageQueue.h"
+#include "Stabilizer.h"
 
 // This class encapsulates all the key-value store functionality including:
 //  1) Ring

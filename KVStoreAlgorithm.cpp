@@ -54,6 +54,7 @@ ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
  //  3) Calls the Stabilization Protocol
 void KVStoreAlgorithm::updateRing()
 {
+    Stabilizer *stable = new Stabilizer(m_dataStore, m_memberNode, m_networkEmulator, m_hasMyReplicas, m_haveReplicasOf);
     // Step 1. Get the current membership list from Membership Protocol (mp1)
     auto curMemList = getMembershipList();
 
@@ -84,7 +85,8 @@ void KVStoreAlgorithm::updateRing()
         // update ring
         this->m_ring = curMemList;
         if (!this->m_dataStore->isEmpty()) {
-            stabilizationProtocol();
+            //stabilizationProtocol();
+            stable->stabilizationProtocol();
         }
     }
 }
