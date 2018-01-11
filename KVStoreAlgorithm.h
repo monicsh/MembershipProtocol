@@ -47,12 +47,6 @@ private:
         vector<ActionOnReplicaNode> actionOnReplicaNode;
     };
 
-    // Vector holding the next two neighbors in the ring who have my replicas
-    vector<Node> m_hasMyReplicas;
-
-    // Vector holding the previous two neighbors in the ring whose replicas I have
-    vector<Node> m_haveReplicasOf;
-
     vector<Node> m_ring;
     HashTable * m_dataStore;
     Member *m_memberNode;

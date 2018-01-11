@@ -10,20 +10,17 @@
 
 Stabilizer::~Stabilizer()
 {
-    delete m_dataStore;
-    delete m_memberNode;
-    delete m_networkEmulator;
 }
 
-Stabilizer::Stabilizer(HashTable *dataStore, Member *memberNode, EmulNet * networkEmulator, vector<Node> hasMyReplicas, vector<Node> haveReplicasOf){
+Stabilizer::Stabilizer(HashTable *dataStore, Member *memberNode, EmulNet * networkEmulator)
+{
     this->m_dataStore = dataStore;
     this->m_memberNode = memberNode;
     this->m_networkEmulator = networkEmulator;
-    this->m_hasMyReplicas = hasMyReplicas;
-    this->m_haveReplicasOf = haveReplicasOf;
 }
 
-int Stabilizer::myPositionInTheRing(){
+int Stabilizer::myPositionInTheRing()
+{
     // 1. find out my postition in the ring
     int myPos = -1;
     for (int i = 0; i < this->m_ring.size(); i++) {
@@ -37,35 +34,40 @@ int Stabilizer::myPositionInTheRing(){
     return myPos;
 }
 
-int Stabilizer::findfirstSuccessorIndex(int myPos){
+int Stabilizer::findfirstSuccessorIndex(int myPos)
+{
     if (myPos < 0){
         return -1;
     }
     return (myPos+1)%(this->m_ring.size());
 }
 
-int Stabilizer::findSecondSuccessorIndex(int myPos){
+int Stabilizer::findSecondSuccessorIndex(int myPos)
+{
     if (myPos < 0){
         return -1;
     }
     return (myPos+2)%(this->m_ring.size());
 }
 
-int Stabilizer::findfirstPredeccesorIndex(int myPos){
+int Stabilizer::findfirstPredeccesorIndex(int myPos)
+{
     if (myPos < 0){
         return -1;
     }
     return (myPos-1 + this->m_ring.size())%(this->m_ring.size());
 }
 
-int Stabilizer::findSecondPredeccesorIndex(int myPos){
+int Stabilizer::findSecondPredeccesorIndex(int myPos)
+{
     if (myPos < 0){
         return -1;
     }
     return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
 }
 
-void Stabilizer::setHasMyReplicasIfEmpty(int succ_1, int succ_2){
+void Stabilizer::setHasMyReplicasIfEmpty(int succ_1, int succ_2)
+{
     if (!this->m_hasMyReplicas.empty()){
         return;
     }
@@ -74,7 +76,8 @@ void Stabilizer::setHasMyReplicasIfEmpty(int succ_1, int succ_2){
     this->m_hasMyReplicas.push_back(m_ring[succ_2]);
 }
 
-void Stabilizer::setHaveReplicasOfIfEmpty(int pred_1, int pred_2){
+void Stabilizer::setHaveReplicasOfIfEmpty(int pred_1, int pred_2)
+{
     if (!this->m_haveReplicasOf.empty()){
         return;
     }
@@ -83,10 +86,10 @@ void Stabilizer::setHaveReplicasOfIfEmpty(int pred_1, int pred_2){
 }
 
 void Stabilizer::sendMessageToUpdateReplicaInfoFromPrimary(
-                                                                 const string &key,
-                                                                 const string &keyValue,
-                                                                 int successorFirstIndex,
-                                                                 int successorSecondIndex)
+     const string &key,
+     const string &keyValue,
+     int successorFirstIndex,
+     int successorSecondIndex)
 {
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
         m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
@@ -106,7 +109,12 @@ void Stabilizer::sendMessageToUpdateReplicaInfoFromPrimary(
     g_transID++;
 }
 
-void Stabilizer::sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex) {
+void Stabilizer::sendMessageToUpdateReplicaInfoFromSecondary(
+    const string &key,
+    const string &keyValue,
+    int predeccesorFirstIndex,
+    int successorFirstIndex)
+{
     if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
         if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()){
             Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
@@ -211,9 +219,9 @@ void Stabilizer::initRing(){
     this->m_ring = curMemList;
     return;
 }
+
 void Stabilizer::stabilizationProtocol()
 {
-
     initRing();
     int myPositionInRing = myPositionInTheRing();
 

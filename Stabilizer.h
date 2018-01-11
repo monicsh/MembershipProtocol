@@ -47,9 +47,8 @@ private:
 
 public:
     virtual ~Stabilizer();
-//    vector<Node> m_hasMyReplicas; KVStoreAlgorithm for these variable
-//    vector<Node> m_haveReplicasOf;
-    Stabilizer(HashTable *dataStore, Member *memberNode, EmulNet * networkEmulator, vector<Node> hasMyReplicas, vector<Node> haveReplicasOf );
+    Stabilizer(HashTable *dataStore, Member *memberNode, EmulNet * networkEmulator);
+
     void stabilizationProtocol();
 };
 
