@@ -44,6 +44,7 @@ private:
     int findMyPosInReplicaSet(vector<Node> &replicaSet);
     ReplicaType parseReplicaType(string valueToParse);
     string parseValue(string valueToParse);
+
 public:
     virtual ~Stabilizer();
 //    vector<Node> m_hasMyReplicas; KVStoreAlgorithm for these variable
