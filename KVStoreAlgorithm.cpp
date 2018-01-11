@@ -54,6 +54,8 @@ ReplicaType KVStoreAlgorithm::ConvertToReplicaType(string replicaTypeString)
  //  3) Calls the Stabilization Protocol
 void KVStoreAlgorithm::updateRing()
 {
+    Stabilizer stabilizer(m_dataStore, m_memberNode, m_networkEmulator);
+
     // Step 1. Get the current membership list from Membership Protocol (mp1)
     auto curMemList = getMembershipList();
 
@@ -79,12 +81,12 @@ void KVStoreAlgorithm::updateRing()
     // Step 3: Run the stabilization protocol IF REQUIRED
     // Run stabilization protocol if the hash table size is greater than zero
     // and if there has been a changed in the ring
-    if (hasRingChanged){
+    if (hasRingChanged) {
 
         // update ring
         this->m_ring = curMemList;
         if (!this->m_dataStore->isEmpty()) {
-            stabilizationProtocol();
+            stabilizer.stabilizationProtocol();
         }
     }
 }
@@ -652,194 +654,3 @@ bool KVStoreAlgorithm::recvLoop()
         1);
 }
 
-int KVStoreAlgorithm::myPositionInTheRing(){
-    // 1. find out my postition in the ring
-    int myPos = -1;
-    for (int i = 0; i < this->m_ring.size(); i++) {
-        if (m_ring[i].nodeAddress == this->m_memberNode->addr){
-            myPos = i;          // found pos
-
-            break;
-        }
-    }
-
-    return myPos;
-}
-
-int KVStoreAlgorithm::findfirstSuccessorIndex(int myPos){
-    if (myPos < 0){
-        return -1;
-    }
-    return (myPos+1)%(this->m_ring.size());
-}
-
-int KVStoreAlgorithm::findSecondSuccessorIndex(int myPos){
-    if (myPos < 0){
-        return -1;
-    }
-    return (myPos+2)%(this->m_ring.size());
-}
-
-int KVStoreAlgorithm::findfirstPredeccesorIndex(int myPos){
-    if (myPos < 0){
-        return -1;
-    }
-    return (myPos-1 + this->m_ring.size())%(this->m_ring.size());
-}
-
-int KVStoreAlgorithm::findSecondPredeccesorIndex(int myPos){
-    if (myPos < 0){
-        return -1;
-    }
-    return (myPos-2 + this->m_ring.size())%(this->m_ring.size());
-}
-
-void KVStoreAlgorithm::setHasMyReplicasIfEmpty(int succ_1, int succ_2){
-    if (!this->m_hasMyReplicas.empty()){
-        return;
-    }
-
-    this->m_hasMyReplicas.push_back(m_ring[succ_1]);
-    this->m_hasMyReplicas.push_back(m_ring[succ_2]);
-}
-
-void KVStoreAlgorithm::setHaveReplicasOfIfEmpty(int pred_1, int pred_2){
-    if (!this->m_haveReplicasOf.empty()){
-        return;
-    }
-    this->m_haveReplicasOf.push_back(m_ring[pred_1]);
-    this->m_haveReplicasOf.push_back(m_ring[pred_2]);
-}
-
-void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromPrimary(
-                                                 const string &key,
-                                                 const string &keyValue,
-                                                 int successorFirstIndex,
-                                                 int successorSecondIndex)
-{
-    if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
-        m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-        Address toaddr = m_ring[successorFirstIndex].nodeAddress;
-        Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, SECONDARY);
-        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-    }
-
-    if (m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[0].getAddress() and
-        m_ring[successorSecondIndex].getAddress() != m_hasMyReplicas[1].getAddress()){
-        Address toaddr = m_ring[successorSecondIndex].nodeAddress;
-        Message msg = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
-        this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddr, msg.toString());
-
-    }
-    g_transID++;
-}
-
-void KVStoreAlgorithm::sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex) {
-    if (m_ring[successorFirstIndex].getAddress() != m_hasMyReplicas[0].getAddress()){
-        if (m_ring[predeccesorFirstIndex].getAddress() != m_haveReplicasOf[0].getAddress()){
-            Address toaddrSucc = m_ring[successorFirstIndex].nodeAddress;
-            Address toaddrPred = m_ring[predeccesorFirstIndex].nodeAddress;
-            Message msgToSucc = Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, TERTIARY);
-            Message msgToPred= Message(g_transID, m_memberNode->addr, CREATE, key, keyValue, PRIMARY);
-            this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrSucc, msgToSucc.toString());
-            this->m_networkEmulator->ENsend(&m_memberNode->addr, &toaddrPred, msgToPred.toString());
-            g_transID++;
-        }
-
-    }
-}
-
-int KVStoreAlgorithm::findMyPosInReplicaSet(vector<Node> &replicaSet)
-{
-    for (int i = 0; i < replicaSet.size(); i++){
-        if (replicaSet[i].nodeAddress == this->m_memberNode->addr){
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-ReplicaType KVStoreAlgorithm::parseReplicaType(string valueToParse)
-{
-    return Entry(valueToParse).replica;
-}
-
-string KVStoreAlgorithm::parseValue(string valueToParse)
-{
-    return Entry(valueToParse).value;
-}
-
-void KVStoreAlgorithm::stabilizationProtocol()
-{
-    int myPositionInRing = myPositionInTheRing();
-
-    if (myPositionInRing < 0)
-    {
-        throw new std::runtime_error("stabilization_protocol_error: myPos is -1");
-    }
-
-    int successorFirstIndex = findfirstSuccessorIndex(myPositionInRing);
-    int successorSecondIndex = findSecondSuccessorIndex(myPositionInRing);
-    int predeccesorFirstIndex = findfirstPredeccesorIndex(myPositionInRing);
-    int predeccesorSecondIndex = findSecondPredeccesorIndex(myPositionInRing);
-
-    setHasMyReplicasIfEmpty(successorFirstIndex, successorSecondIndex);
-    setHaveReplicasOfIfEmpty(predeccesorFirstIndex, predeccesorSecondIndex);
-
-    // iterate key-value hash table
-    for (auto it = this->m_dataStore->hashTable.begin();
-         it != this->m_dataStore->hashTable.end();
-         it++) {
-
-        string key = it->first;
-        string value = parseValue(it->second);
-        ReplicaType replicaType = parseReplicaType(it->second);
-
-        vector<Node> replicaSet = findNodes(key);
-
-        // todo: fix this for early exit
-        if (replicaSet.size() < 3) {
-            return;
-        }
-
-        //check this node exists in replicaSet
-        int myPosInReplica = findMyPosInReplicaSet(replicaSet);
-
-        // node exists in the replicaSet
-        if (myPosInReplica < 0) {
-            // todo : throw exception ?
-            return ;
-        }
-
-        // if position changed, update replicatype
-        if ((int)(replicaType) != myPosInReplica){
-            Entry entry = Entry(it->second);
-            entry.replica = (ReplicaType) myPosInReplica;
-            it->second = entry.convertToString();
-        }
-
-        switch (myPosInReplica) {
-            case 0: // i m primary
-                sendMessageToUpdateReplicaInfoFromPrimary(key, value, successorFirstIndex, successorSecondIndex);
-                break;
-            case 1: // i am seconday
-                sendMessageToUpdateReplicaInfoFromSecondary(key, value, predeccesorFirstIndex, successorFirstIndex);
-                break;
-            case 2: // i am tertiary
-                // todo
-                break;
-            default:
-                //throw new std::runtime_error("stabilization_protocol_error: myPosInReplica is not known");
-                break;
-        }
-
-        m_hasMyReplicas.clear();
-        m_haveReplicasOf.clear();
-        m_hasMyReplicas.push_back(m_ring[successorFirstIndex]);
-        m_hasMyReplicas.push_back(m_ring[successorSecondIndex]);
-        m_haveReplicasOf.push_back(m_ring[predeccesorFirstIndex]);
-        m_haveReplicasOf.push_back(m_ring[predeccesorSecondIndex]);
-    }
-}

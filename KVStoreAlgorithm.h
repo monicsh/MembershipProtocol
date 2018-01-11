@@ -15,6 +15,7 @@
 #include "Params.h"
 #include "Message.h"
 #include "MessageQueue.h"
+#include "Stabilizer.h"
 
 // This class encapsulates all the key-value store functionality including:
 //  1) Ring
@@ -46,12 +47,6 @@ private:
         vector<ActionOnReplicaNode> actionOnReplicaNode;
     };
 
-    // Vector holding the next two neighbors in the ring who have my replicas
-    vector<Node> m_hasMyReplicas;
-
-    // Vector holding the previous two neighbors in the ring whose replicas I have
-    vector<Node> m_haveReplicasOf;
-
     vector<Node> m_ring;
     HashTable * m_dataStore;
     Member *m_memberNode;
@@ -77,7 +72,6 @@ private:
     void checkReadQuoromTimeout();
     bool isTimedout(QuoromDetail& quoromDetail);
 
-
     // Server side  API. The function does the following:
     //  1) read/create/update/delete key value from/into the local hash table
     //  2) Return true or false based on success or failure
@@ -87,19 +81,6 @@ private:
     bool deletekey(string key);
 
     ReplicaType ConvertToReplicaType(string replicaTypeString);
-
-    int myPositionInTheRing();
-    int findfirstSuccessorIndex(int myPos);
-    int findSecondSuccessorIndex(int myPos);
-    int findfirstPredeccesorIndex(int myPos);
-    int findSecondPredeccesorIndex(int myPos);
-    void setHasMyReplicasIfEmpty(int succ_1, int succ_2);
-    void setHaveReplicasOfIfEmpty(int pred_1, int pred_2);
-    void sendMessageToUpdateReplicaInfoFromPrimary(const string &key, const string &keyValue, int successorFirstIndex, int successorSecondIndex);
-    void sendMessageToUpdateReplicaInfoFromSecondary(const string &key, const string &keyValue, int predeccesorFirstIndex, int successorFirstIndex);
-    
-    // stabilization protocol - handle multiple failures
-    void stabilizationProtocol();
 
     // compare current state
     bool isCurrentStateChange(vector<Node> curMemList, vector<Node> ring);
@@ -111,9 +92,6 @@ private:
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
-    int findMyPosInReplicaSet(vector<Node> &replicaSet);
-    static string parseValue(string valueToParse);
-    ReplicaType parseReplicaType(string valueToParse);
 
 public:
     virtual ~KVStoreAlgorithm();
