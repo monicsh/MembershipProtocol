@@ -208,7 +208,8 @@ void KVStoreAlgorithm::clientCreate(string key, string value)
 void KVStoreAlgorithm::clientRead(string key)
 {
     sendMessageToReplicas(findNodes(key), READ, key);
-    this->m_readMessagesQuorumTracker->updateQuorum(READ, key);
+    this->m_readMessagesQuorumTracker->updateQuorum(g_transID, READ, key);
+    g_transID++;
 }
 
 void KVStoreAlgorithm::clientUpdate(string key, string value)

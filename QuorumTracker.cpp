@@ -22,14 +22,12 @@ QuorumTracker::~QuorumTracker()
 {
 }
 
-void QuorumTracker::updateQuorum(MessageType msgType, string key)
+void QuorumTracker::updateQuorum(int transID, MessageType msgType, string key)
 {
     // add quorom counter = 0 for each sent READ message triplet sent above
-    this->m_quorum[g_transID].transMsgType = msgType;
-    this->m_quorum[g_transID].reqTime = this->m_parameters->getcurrtime();
-    this->m_quorum[g_transID].reqKey = key;
-
-    g_transID++;
+    this->m_quorum[transID].transMsgType = msgType;
+    this->m_quorum[transID].reqTime = this->m_parameters->getcurrtime();
+    this->m_quorum[transID].reqKey = key;
 }
 
 bool QuorumTracker::isQuorumExpired(const QuoromDetail& quoromDetail)

@@ -49,7 +49,7 @@ public:
         Params *par,
         Log *log);
 
-    void updateQuorum(MessageType msgType, string key);
+    void updateQuorum(int transID, MessageType msgType, string key);
     void removeExpiredQuorums();
     bool quorumExists(int transID);
     QuoromDetail getQuorum(int transID);
