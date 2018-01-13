@@ -18,7 +18,7 @@ struct QuoromDetail
 {
     QuoromDetail()
         : replyCounter(0)
-        // , reqTime(0)
+        , reqTime(0)
         {
         }
 
