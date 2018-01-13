@@ -445,7 +445,7 @@ void KVStoreAlgorithm::processReadReplyMessage(
     if (record.replyCounter == 3) {
 
         // quorom met; remove this triplet
-        this->m_quorumTracker->removeQuorumEntry(transID);
+        this->m_quorumTracker->removeQuorumDetails(transID);
 
         return;
     }

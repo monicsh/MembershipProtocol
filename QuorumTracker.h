@@ -55,7 +55,7 @@ public:
     void isQuorumTimedout();
     bool isQuorumEntryExists(int transID);
     QuoromDetail GetQuorumDetails(int transID);
-    void removeQuorumEntry(int transID);
+    void removeQuorumDetails(int transID);
     void saveQuorum(int transID, QuoromDetail record);
 };
 
