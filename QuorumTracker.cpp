@@ -71,7 +71,7 @@ QuoromDetail QuorumTracker::GetQuorumDetails(int transID)
     return record->second;
 }
 
-void QuorumTracker::eraseQuorumEntry(int transID)
+void QuorumTracker::removeQuorumEntry(int transID)
 {
     auto record = this->m_quorum.find(transID);
     if (record != this->m_quorum.end()) {
