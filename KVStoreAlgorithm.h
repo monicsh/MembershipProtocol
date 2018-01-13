@@ -35,18 +35,6 @@ private:
         unsigned replyCounter;
     };
 
-    struct ActionOnReplicaNode
-    {
-        Node node;
-        MessageType msgType;
-        ReplicaType replicaType;
-    };
-
-    struct ViolatedNodeSet
-    {
-        vector<ActionOnReplicaNode> actionOnReplicaNode;
-    };
-
     vector<Node> m_ring;
     HashTable * m_dataStore;
     Member *m_memberNode;
