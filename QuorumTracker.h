@@ -23,9 +23,9 @@ struct QuoromDetail
         }
 
     MessageType transMsgType;
+    unsigned replyCounter;
     int reqTime;
     string reqKey;
-    unsigned replyCounter;
 };
 
 class QuorumTracker
