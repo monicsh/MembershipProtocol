@@ -4,7 +4,7 @@
 #*
 #* Current file: Makefile
 #* About this file: Build Script.
-#* 
+#*
 #***********************
 
 CFLAGS =  -g -std=c++14
@@ -34,7 +34,7 @@ Application.o: Application.cpp Application.h Member.h Log.h Params.h Member.h Em
 Log.o: Log.cpp Log.h Params.h Member.h
 	g++ -c Log.cpp ${CFLAGS}
 
-Params.o: Params.cpp Params.h 
+Params.o: Params.cpp Params.h
 	g++ -c Params.cpp ${CFLAGS}
 
 Member.o: Member.cpp Member.h
