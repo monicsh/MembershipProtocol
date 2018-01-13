@@ -1,4 +1,3 @@
-
 //
 //  QuorumTracker.cpp
 //  MembershipProtocol
@@ -82,4 +81,3 @@ void QuorumTracker::saveQuorum(int transID, QuoromDetail record)
 {
     this->m_quorum[transID] = record;
 }
-
