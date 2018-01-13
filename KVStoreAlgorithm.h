@@ -16,6 +16,7 @@
 #include "Message.h"
 #include "MessageQueue.h"
 #include "Stabilizer.h"
+#include "QuorumTracker.h"
 
 // This class encapsulates all the key-value store functionality including:
 //  1) Ring
@@ -42,6 +43,7 @@ private:
     EmulNet * m_networkEmulator;
     Log * m_logger;
     IMessageQueue * m_queue;
+    QuorumTracker* m_quorumTracker;
 
     // container for tracking quorom for READ messages
     std::map<int, struct QuoromDetail> m_quorumRead;

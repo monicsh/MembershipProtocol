@@ -22,6 +22,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
 
     // TODO (monicsh): inject from ctor
     this->m_dataStore = new HashTable();
+    this->m_quorumTracker = new QuorumTracker(par, log);
 
     this->m_memberNode->addr = *address;
 }
