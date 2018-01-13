@@ -10,8 +10,6 @@
 #define QuorumTracker_hpp
 
 #include "stdincludes.h"
-#include "EmulNet.h"
-#include "Node.h"
 #include "Log.h"
 #include "Params.h"
 #include "Message.h"
@@ -19,10 +17,10 @@
 struct QuoromDetail
 {
     QuoromDetail()
-    : replyCounter(0)
-    , reqTime(0)
-    {
-    }
+        : replyCounter(0)
+        , reqTime(0)
+        {
+        }
 
     MessageType transMsgType;
     int reqTime;
