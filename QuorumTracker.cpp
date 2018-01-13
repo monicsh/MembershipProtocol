@@ -8,3 +8,16 @@
 //
 
 #include "QuorumTracker.h"
+
+QuorumTracker::QuorumTracker(
+              Params *par,
+              Log *log)
+{
+    this->m_parameters = par;
+    this->m_logger = log;
+}
+
+QuorumTracker::~QuorumTracker()
+{
+}
+

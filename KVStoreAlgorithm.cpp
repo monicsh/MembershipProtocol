@@ -21,7 +21,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     this->m_queue = queue;
 
     // TODO (monicsh): inject from ctor
-    m_dataStore = new HashTable();
+    this->m_dataStore = new HashTable();
 
     this->m_memberNode->addr = *address;
 }

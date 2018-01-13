@@ -10,13 +10,37 @@
 #define QuorumTracker_hpp
 
 #include "stdincludes.h"
+#include "EmulNet.h"
+#include "Node.h"
+#include "Log.h"
+#include "Params.h"
+#include "Message.h"
 
 class QuorumTracker
 {
+private:
+    struct QuoromDetail
+    {
+        QuoromDetail()
+         : replyCounter(0)
+         , reqTime(0)
+        {
+        }
+
+        MessageType transMsgType;
+        int reqTime;
+        string reqKey;
+        unsigned replyCounter;
+    };
+
+    Params *m_parameters;
+    Log * m_logger;
 
 public:
     virtual ~QuorumTracker();
-    QuorumTracker();
+    QuorumTracker(
+        Params *par,
+        Log *log);
 
 };
 #endif /* QuorumTracker_hpp */
