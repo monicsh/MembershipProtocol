@@ -27,6 +27,7 @@ function contains () {
 ####
 
 verbose=$(contains "-v" "$@")
+MAKE_OPTS=-j8
 
 ###
 # Global variables
@@ -63,7 +64,7 @@ CREATE_TEST_SCORE=0
 if [ "${verbose}" -eq 0 ]
 then
     make clean > /dev/null 2>&1
-    make > /dev/null 2>&1
+    make ${MAKE_OPTS} > /dev/null 2>&1
     if [ $? -ne "${SUCCESS}" ]
     then
     	echo "COMPILATION ERROR !!!"
@@ -72,7 +73,7 @@ then
     ./Application ./testcases/create.conf > /dev/null 2>&1
 else
 	make clean
-	make
+	make ${MAKE_OPTS}
 	if [ $? -ne "${SUCCESS}" ]
 	then
     	echo "COMPILATION ERROR !!!"
@@ -133,7 +134,7 @@ DELETE_TEST2_SCORE=0
 if [ "${verbose}" -eq 0 ]
 then
     make clean > /dev/null 2>&1
-    make > /dev/null 2>&1
+    make ${MAKE_OPTS} > /dev/null 2>&1
     if [ $? -ne "${SUCCESS}" ]
     then
     	echo "COMPILATION ERROR !!!"
@@ -142,7 +143,7 @@ then
     ./Application ./testcases/delete.conf > /dev/null 2>&1
 else
 	make clean
-	make
+	make ${MAKE_OPTS}
 	if [ $? -ne "${SUCCESS}" ]
 	then
     	echo "COMPILATION ERROR !!!"
@@ -231,7 +232,7 @@ READ_TEST5_SCORE=0
 if [ "${verbose}" -eq 0 ]
 then
     make clean > /dev/null 2>&1
-    make > /dev/null 2>&1
+    make ${MAKE_OPTS} > /dev/null 2>&1
     if [ $? -ne "${SUCCESS}" ]
     then
     	echo "COMPILATION ERROR !!!"
@@ -240,7 +241,7 @@ then
     ./Application ./testcases/read.conf > /dev/null 2>&1
 else
 	make clean
-	make
+	make ${MAKE_OPTS}
 	if [ $? -ne "${SUCCESS}" ]
 	then
     	echo "COMPILATION ERROR !!!"
@@ -439,7 +440,7 @@ UPDATE_TEST5_SCORE=0
 if [ "${verbose}" -eq 0 ]
 then
     make clean > /dev/null 2>&1
-    make > /dev/null 2>&1
+    make ${MAKE_OPTS} > /dev/null 2>&1
     if [ $? -ne "${SUCCESS}" ]
     then
     	echo "COMPILATION ERROR !!!"
@@ -448,7 +449,7 @@ then
     ./Application ./testcases/update.conf > /dev/null 2>&1
 else
 	make clean
-	make
+	make ${MAKE_OPTS}
 	if [ $? -ne "${SUCCESS}" ]
 	then
     	echo "COMPILATION ERROR !!!"
