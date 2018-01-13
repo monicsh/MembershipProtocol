@@ -26,16 +26,6 @@
 class KVStoreAlgorithm
 {
 private:
-    struct QuoromDetail
-    {
-        QuoromDetail() : replyCounter(0) { }
-
-        MessageType transMsgType;
-        int reqTime;
-        string reqKey;
-        unsigned replyCounter;
-    };
-
     vector<Node> m_ring;
     HashTable * m_dataStore;
     Member *m_memberNode;
@@ -44,18 +34,13 @@ private:
     Log * m_logger;
     IMessageQueue * m_queue;
     QuorumTracker* m_readMessagesQuorumTracker;
-
-    // container for tracking quorom for DELETE messages
-    std::map<int, struct QuoromDetail> m_quorum;
+    QuorumTracker* m_quorumTracker;
 
     vector<Node> getMembershipList();
     size_t hashFunction(string key);
 
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
-    void updateQuorum(MessageType msgType, string key);
-    void checkQuoromTimeout();
-    bool isTimedout(QuoromDetail& quoromDetail);
 
     // Server side  API. The function does the following:
     //  1) read/create/update/delete key value from/into the local hash table
@@ -77,6 +62,8 @@ private:
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+
+    void updateQuorum(MessageType msgType, string key);
 
 public:
     virtual ~KVStoreAlgorithm();

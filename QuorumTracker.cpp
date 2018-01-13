@@ -36,15 +36,44 @@ bool QuorumTracker::isQuorumExpired(const QuoromDetail& quoromDetail)
             && quoromDetail.reqTime <= (this->m_parameters->getcurrtime() - 5));
 }
 
+void QuorumTracker::logFail(int transID, const QuoromDetail& quoromDetail)
+{
+    auto& transMsgType = quoromDetail.transMsgType;
+    auto* address =  &this->m_address;
+
+    switch (transMsgType) {
+    case CREATE:
+        this->m_logger->logCreateFail(address, true, transID, quoromDetail.reqKey, "C fail");
+        break;
+
+    case READ:
+        this->m_logger->logReadFail(address, true, transID, quoromDetail.reqKey);
+        break;
+
+    case UPDATE:
+        this->m_logger->logUpdateFail(address, true, transID, quoromDetail.reqKey, "U fail");
+        break;
+
+    case DELETE:
+        this->m_logger->logDeleteFail(address, true, transID, quoromDetail.reqKey);
+        break;
+
+    default:
+        throw new runtime_error("quorum logFail failed, unknow message type");
+        break;
+   }
+}
+
 void QuorumTracker::removeExpiredQuorums()
 {
     auto record = this->m_quorum.begin();
     while (record != this->m_quorum.end()) {
+        auto transID = record->first;
         auto quoromDetail = record->second;
         auto expired = isQuorumExpired(quoromDetail);
 
         if (expired) {
-            this->m_logger->logReadFail(&(this->m_address), true, record->first, quoromDetail.reqKey);
+            logFail(transID, quoromDetail);
 
             // remove failing qurom record
             record = this->m_quorum.erase(record);

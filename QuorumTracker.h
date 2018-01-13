@@ -41,6 +41,7 @@ private:
     std::map<int, struct QuoromDetail> m_quorum;
 
     bool isQuorumExpired(const QuoromDetail& quoromDetail);
+    void logFail(int transID, const QuoromDetail& quoromDetail);
 
 public:
     virtual ~QuorumTracker();

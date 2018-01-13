@@ -23,6 +23,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
     // TODO (monicsh): inject from ctor
     this->m_dataStore = new HashTable();
     this->m_readMessagesQuorumTracker = new QuorumTracker(memberNode->addr, par, log);
+    this->m_quorumTracker = new QuorumTracker(memberNode->addr, par, log);
 
     this->m_memberNode->addr = *address;
 }
@@ -192,9 +193,7 @@ void KVStoreAlgorithm::sendMessageToReplicas(
 
 void KVStoreAlgorithm::updateQuorum(MessageType msgType, string key)
 {
-    this->m_quorum[g_transID].transMsgType = msgType;
-    this->m_quorum[g_transID].reqTime = this->m_parameters->getcurrtime();
-    this->m_quorum[g_transID].reqKey = key;
+    this->m_quorumTracker->updateQuorum(g_transID, msgType, key);
 
     g_transID++;
 }
@@ -392,37 +391,47 @@ void KVStoreAlgorithm::processReplyMessage(
     int transID)
 {
     const bool success("1" == messageParts[3]);
-
-    auto record = m_quorum.find(transID);
-    if (record == m_quorum.end()) {
-        return; // not found
-    }
-
     if (!success){
         return;
     }
 
-    //replyCounter increment while reply message found and check quorum
-    record->second.replyCounter++;
+    auto quoromExists = this->m_quorumTracker->quorumExists(transID);
+    if (!quoromExists) {
+        return; // not found
+    }
 
-    if (record->second.replyCounter == 3) {
+    auto record = this->m_quorumTracker->getQuorum(transID);
+
+    //replyCounter increment while reply message found and check quorum
+    record.replyCounter++;
+    this->m_quorumTracker->saveQuorum(transID, record);
+
+    if (record.replyCounter == 3) {
+
         // quorom met; remove this triplet
-        if (record->second.transMsgType == CREATE){
-            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+
+        if (record.transMsgType == CREATE){
+            this->m_logger->logCreateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record.reqKey, "somevalue");
         }
-        m_quorum.erase(record);
+        this->m_quorumTracker->removeQuorum(transID);
+
         return;
     }
 
     // log as success on basis of message type; but dont remove
-    if(record->second.replyCounter == 2) {
-        if (record->second.transMsgType == UPDATE){
-            this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey, "somevalue");
+    if(record.replyCounter == 2) {
+        if (record.transMsgType == UPDATE){
+            this->m_logger->logUpdateSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record.reqKey, "somevalue");
 
-        } else if (record->second.transMsgType == DELETE){
-            this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record->second.reqKey);
+        } else if (record.transMsgType == DELETE){
+            this->m_logger->logDeleteSuccess(&(this->m_memberNode->addr), isCoordinator, transID, record.reqKey);
         }
+
+        return;
     }
+
+    // TODO : for =<1
+    return;
 }
 
 void KVStoreAlgorithm::processReadReplyMessage(
@@ -431,8 +440,8 @@ void KVStoreAlgorithm::processReadReplyMessage(
     int transID)
 {
     const string value = messageParts[3];
-    auto quoromExists = this->m_readMessagesQuorumTracker->quorumExists(transID);
 
+    auto quoromExists = this->m_readMessagesQuorumTracker->quorumExists(transID);
     if (!quoromExists) {
         return; // not found
     }
@@ -525,49 +534,9 @@ void KVStoreAlgorithm::checkMessages()
         } // switch end
 
         // update quorom state at end
-        checkQuoromTimeout();
+        this->m_quorumTracker->removeExpiredQuorums();
         this->m_readMessagesQuorumTracker->removeExpiredQuorums();
     }
-}
-
-/*
- * This function should also ensure all READ and UPDATE operation
- * get QUORUM replies
- */
-void KVStoreAlgorithm::checkQuoromTimeout()
-{
-    auto record  = this->m_quorum.begin();
-    while (record != this->m_quorum.end()) {
-
-        //delete the record and log it as failure
-        if (isTimedout(record->second)) {
-            MessageType transMsgtype = record->second.transMsgType;
-            if (transMsgtype == CREATE){
-                this->m_logger->logCreateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-
-            } else if (transMsgtype == READ){
-                this->m_logger->logReadFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-
-            } else if (transMsgtype == UPDATE){
-                this->m_logger->logUpdateFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey, "somevalue");
-
-            } else if (transMsgtype == DELETE){
-                this->m_logger->logDeleteFail(&(this->m_memberNode->addr), true, record->first, record->second.reqKey);
-            }
-
-            // remove failing qurom record
-            record = this->m_quorum.erase(record);
-            continue;
-        }
-
-        // check next
-        ++record;
-    }
-}
-
-bool KVStoreAlgorithm::isTimedout(QuoromDetail& quoromDetail)
-{
-    return quoromDetail.replyCounter < 2 && quoromDetail.reqTime <= this->m_parameters->getcurrtime() - 5;
 }
 
 /**
