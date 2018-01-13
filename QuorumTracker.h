@@ -40,7 +40,7 @@ private:
     // container for tracking quorom for messages
     std::map<int, struct QuoromDetail> m_quorum;
 
-    bool isTimedout(const QuoromDetail& quoromDetail);
+    bool isQuorumExpired(const QuoromDetail& quoromDetail);
 
 public:
     virtual ~QuorumTracker();
@@ -50,7 +50,7 @@ public:
         Log *log);
 
     void updateQuorum(MessageType msgType, string key);
-    void isQuorumTimedout();
+    void removeExpiredQuorums();
     bool quorumExists(int transID);
     QuoromDetail getQuorum(int transID);
     void removeQuorum(int transID);

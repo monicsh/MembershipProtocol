@@ -525,7 +525,7 @@ void KVStoreAlgorithm::checkMessages()
 
         // update quorom state at end
         checkQuoromTimeout();
-        this->m_readMessagesQuorumTracker->isQuorumTimedout();
+        this->m_readMessagesQuorumTracker->removeExpiredQuorums();
     }
 }
 

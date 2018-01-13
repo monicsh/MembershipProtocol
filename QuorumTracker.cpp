@@ -32,28 +32,29 @@ void QuorumTracker::updateQuorum(MessageType msgType, string key)
     g_transID++;
 }
 
-bool QuorumTracker::isTimedout(const QuoromDetail& quoromDetail)
+bool QuorumTracker::isQuorumExpired(const QuoromDetail& quoromDetail)
 {
     return (quoromDetail.replyCounter < 2
             && quoromDetail.reqTime <= (this->m_parameters->getcurrtime() - 5));
 }
 
-void QuorumTracker::isQuorumTimedout()
+void QuorumTracker::removeExpiredQuorums()
 {
     auto record = this->m_quorum.begin();
     while (record != this->m_quorum.end()) {
         auto quoromDetail = record->second;
+        auto expired = isQuorumExpired(quoromDetail);
 
-        if (isTimedout(quoromDetail)) {
+        if (!expired) {
+            ++record;           // next
+
+        } else {
+
             this->m_logger->logReadFail(&(this->m_address), true, record->first, quoromDetail.reqKey);
 
             // remove failing qurom record
             record = this->m_quorum.erase(record);
-            continue;
         }
-
-        // check next
-        ++record;
     }
 }
 
