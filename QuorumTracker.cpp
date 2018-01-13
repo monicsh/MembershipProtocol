@@ -34,7 +34,8 @@ void QuorumTracker::updateQuorum(MessageType msgType, string key)
 
 bool QuorumTracker::isTimedout(QuoromDetail& quoromDetail)
 {
-    return quoromDetail.replyCounter < 2 && quoromDetail.reqTime <= this->m_parameters->getcurrtime() - 5;
+    return (quoromDetail.replyCounter < 2
+            && quoromDetail.reqTime <= (this->m_parameters->getcurrtime() - 5));
 }
 
 void QuorumTracker::isQuorumTimedout()
@@ -55,28 +56,29 @@ void QuorumTracker::isQuorumTimedout()
     }
 }
 
-bool QuorumTracker::isQuorumEntryExists(int transID)
+bool QuorumTracker::quorumExists(int transID)
 {
     return this->m_quorum.end() != this->m_quorum.find(transID);
 }
 
-QuoromDetail QuorumTracker::GetQuorumDetails(int transID)
+QuoromDetail QuorumTracker::getQuorum(int transID)
 {
     auto record = this->m_quorum.find(transID);
     if (record == this->m_quorum.end()) {
-        throw new runtime_error("quorum entry not found, call isQuorumEntryExists before this function");
+        throw new runtime_error("quorum entry not found, call quorumExists before this function");
     }
 
     return record->second;
 }
 
-void QuorumTracker::removeQuorumDetails(int transID)
+void QuorumTracker::removeQuorum(int transID)
 {
     auto record = this->m_quorum.find(transID);
     if (record != this->m_quorum.end()) {
         this->m_quorum.erase(record);
     }
 }
+
 void QuorumTracker::saveQuorum(int transID, QuoromDetail record)
 {
     this->m_quorum[transID] = record;

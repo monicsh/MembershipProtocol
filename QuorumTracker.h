@@ -11,14 +11,14 @@
 
 #include "stdincludes.h"
 #include "Log.h"
-#include "Params.h"
 #include "Message.h"
+#include "Params.h"
 
 struct QuoromDetail
 {
     QuoromDetail()
         : replyCounter(0)
-        , reqTime(0)
+        // , reqTime(0)
         {
         }
 
@@ -51,9 +51,9 @@ public:
 
     void updateQuorum(MessageType msgType, string key);
     void isQuorumTimedout();
-    bool isQuorumEntryExists(int transID);
-    QuoromDetail GetQuorumDetails(int transID);
-    void removeQuorumDetails(int transID);
+    bool quorumExists(int transID);
+    QuoromDetail getQuorum(int transID);
+    void removeQuorum(int transID);
     void saveQuorum(int transID, QuoromDetail record);
 };
 

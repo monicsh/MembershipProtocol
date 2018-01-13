@@ -430,12 +430,13 @@ void KVStoreAlgorithm::processReadReplyMessage(
     int transID)
 {
     const string value = messageParts[3];
+    auto quoromExists = this->m_quorumTracker->quorumExists(transID);
 
-    if (!(this->m_quorumTracker->isQuorumEntryExists(transID))) {
+    if (!quoromExists) {
         return; // not found
     }
 
-    auto record = this->m_quorumTracker->GetQuorumDetails(transID);
+    auto record = this->m_quorumTracker->getQuorum(transID);
 
     // else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
     // else insert new key with transID with counter 1
@@ -445,7 +446,7 @@ void KVStoreAlgorithm::processReadReplyMessage(
     if (record.replyCounter == 3) {
 
         // quorom met; remove this triplet
-        this->m_quorumTracker->removeQuorumDetails(transID);
+        this->m_quorumTracker->removeQuorum(transID);
 
         return;
     }
