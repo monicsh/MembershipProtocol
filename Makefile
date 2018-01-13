@@ -4,10 +4,10 @@
 #*
 #* Current file: Makefile
 #* About this file: Build Script.
-#* 
+#*
 #***********************
 
-CFLAGS =  -g -std=c++14
+CFLAGS = -g -std=c++14 -Wall
 
 all: Application
 
@@ -19,6 +19,7 @@ QuorumTracker.o: QuorumTracker.h QuorumTracker.cpp
 
 Stabilizer.o: Stabilizer.h Stabilizer.cpp
 	g++ -c Stabilizer.cpp ${CFLAGS}
+
 MembershipProtocol.o: MembershipProtocol.cpp MembershipProtocol.h Log.h Params.h Member.h EmulNet.h MessageQueue.h Member.o
 	g++ -c MembershipProtocol.cpp ${CFLAGS}
 
@@ -34,7 +35,7 @@ Application.o: Application.cpp Application.h Member.h Log.h Params.h Member.h Em
 Log.o: Log.cpp Log.h Params.h Member.h
 	g++ -c Log.cpp ${CFLAGS}
 
-Params.o: Params.cpp Params.h 
+Params.o: Params.cpp Params.h
 	g++ -c Params.cpp ${CFLAGS}
 
 Member.o: Member.cpp Member.h

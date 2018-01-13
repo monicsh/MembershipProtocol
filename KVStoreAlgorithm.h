@@ -16,6 +16,7 @@
 #include "Message.h"
 #include "MessageQueue.h"
 #include "Stabilizer.h"
+#include "QuorumTracker.h"
 
 // This class encapsulates all the key-value store functionality including:
 //  1) Ring
@@ -25,16 +26,6 @@
 class KVStoreAlgorithm
 {
 private:
-    struct QuoromDetail
-    {
-        QuoromDetail() : replyCounter(0) { }
-
-        MessageType transMsgType;
-        int reqTime;
-        string reqKey;
-        unsigned replyCounter;
-    };
-
     vector<Node> m_ring;
     HashTable * m_dataStore;
     Member *m_memberNode;
@@ -42,23 +33,14 @@ private:
     EmulNet * m_networkEmulator;
     Log * m_logger;
     IMessageQueue * m_queue;
-
-    // container for tracking quorom for READ messages
-    std::map<int, struct QuoromDetail> m_quorumRead;
-
-    // container for tracking quorom for DELETE messages
-    std::map<int, struct QuoromDetail> m_quorum;
+    QuorumTracker* m_readMessagesQuorumTracker;
+    QuorumTracker* m_quorumTracker;
 
     vector<Node> getMembershipList();
     size_t hashFunction(string key);
 
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
-    void updateQuorumRead(MessageType msgType, string key);
-    void updateQuorum(MessageType msgType, string key);
-    void checkQuoromTimeout();
-    void checkReadQuoromTimeout();
-    bool isTimedout(QuoromDetail& quoromDetail);
 
     // Server side  API. The function does the following:
     //  1) read/create/update/delete key value from/into the local hash table
@@ -80,6 +62,8 @@ private:
     void processDeleteMessage(const Address &fromaddr, bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
     void processReadReplyMessage(bool isCoordinator, const vector<string> &messageParts, int transID);
+
+    void updateQuorum(MessageType msgType, string key);
 
 public:
     virtual ~KVStoreAlgorithm();
