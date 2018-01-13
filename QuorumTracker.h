@@ -40,7 +40,7 @@ private:
     // container for tracking quorom for messages
     std::map<int, struct QuoromDetail> m_quorum;
 
-    bool isTimedout(QuoromDetail& quoromDetail);
+    bool isTimedout(const QuoromDetail& quoromDetail);
 
 public:
     virtual ~QuorumTracker();

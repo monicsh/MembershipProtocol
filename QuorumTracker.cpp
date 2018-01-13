@@ -32,7 +32,7 @@ void QuorumTracker::updateQuorum(MessageType msgType, string key)
     g_transID++;
 }
 
-bool QuorumTracker::isTimedout(QuoromDetail& quoromDetail)
+bool QuorumTracker::isTimedout(const QuoromDetail& quoromDetail)
 {
     return (quoromDetail.replyCounter < 2
             && quoromDetail.reqTime <= (this->m_parameters->getcurrtime() - 5));
