@@ -42,9 +42,10 @@ void QuorumTracker::isQuorumTimedout()
 {
     auto record = this->m_quorum.begin();
     while (record != this->m_quorum.end()) {
+        auto quoromDetail = record->second;
 
-        if (isTimedout(record->second)) {
-            this->m_logger->logReadFail(&(this->m_address), true, record->first, record->second.reqKey);
+        if (isTimedout(quoromDetail)) {
+            this->m_logger->logReadFail(&(this->m_address), true, record->first, quoromDetail.reqKey);
 
             // remove failing qurom record
             record = this->m_quorum.erase(record);
