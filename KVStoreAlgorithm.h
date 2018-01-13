@@ -43,7 +43,7 @@ private:
     EmulNet * m_networkEmulator;
     Log * m_logger;
     IMessageQueue * m_queue;
-    QuorumTracker* m_quorumTracker;
+    QuorumTracker* m_readMessagesQuorumTracker;
 
     // container for tracking quorom for DELETE messages
     std::map<int, struct QuoromDetail> m_quorum;

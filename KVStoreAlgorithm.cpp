@@ -22,7 +22,7 @@ KVStoreAlgorithm::KVStoreAlgorithm(
 
     // TODO (monicsh): inject from ctor
     this->m_dataStore = new HashTable();
-    this->m_quorumTracker = new QuorumTracker(memberNode->addr, par, log);
+    this->m_readMessagesQuorumTracker = new QuorumTracker(memberNode->addr, par, log);
 
     this->m_memberNode->addr = *address;
 }
@@ -208,7 +208,7 @@ void KVStoreAlgorithm::clientCreate(string key, string value)
 void KVStoreAlgorithm::clientRead(string key)
 {
     sendMessageToReplicas(findNodes(key), READ, key);
-    this->m_quorumTracker->updateQuorum(READ, key);
+    this->m_readMessagesQuorumTracker->updateQuorum(READ, key);
 }
 
 void KVStoreAlgorithm::clientUpdate(string key, string value)
@@ -430,23 +430,23 @@ void KVStoreAlgorithm::processReadReplyMessage(
     int transID)
 {
     const string value = messageParts[3];
-    auto quoromExists = this->m_quorumTracker->quorumExists(transID);
+    auto quoromExists = this->m_readMessagesQuorumTracker->quorumExists(transID);
 
     if (!quoromExists) {
         return; // not found
     }
 
-    auto record = this->m_quorumTracker->getQuorum(transID);
+    auto record = this->m_readMessagesQuorumTracker->getQuorum(transID);
 
     // else if counter is N-1 (=2 here), logReadSuccess(transID), so that any late message for READ doesnt starts from 1
     // else insert new key with transID with counter 1
     record.replyCounter++;
-    this->m_quorumTracker->saveQuorum(transID, record);
+    this->m_readMessagesQuorumTracker->saveQuorum(transID, record);
 
     if (record.replyCounter == 3) {
 
         // quorom met; remove this triplet
-        this->m_quorumTracker->removeQuorum(transID);
+        this->m_readMessagesQuorumTracker->removeQuorum(transID);
 
         return;
     }
@@ -525,7 +525,7 @@ void KVStoreAlgorithm::checkMessages()
 
         // update quorom state at end
         checkQuoromTimeout();
-        this->m_quorumTracker->isQuorumTimedout();
+        this->m_readMessagesQuorumTracker->isQuorumTimedout();
     }
 }
 
