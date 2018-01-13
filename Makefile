@@ -7,7 +7,7 @@
 #*
 #***********************
 
-CFLAGS =  -g -std=c++14
+CFLAGS = -g -std=c++14
 
 all: Application
 
@@ -19,6 +19,7 @@ QuorumTracker.o: QuorumTracker.h QuorumTracker.cpp
 
 Stabilizer.o: Stabilizer.h Stabilizer.cpp
 	g++ -c Stabilizer.cpp ${CFLAGS}
+
 MembershipProtocol.o: MembershipProtocol.cpp MembershipProtocol.h Log.h Params.h Member.h EmulNet.h MessageQueue.h Member.o
 	g++ -c MembershipProtocol.cpp ${CFLAGS}
 
