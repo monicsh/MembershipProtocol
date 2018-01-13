@@ -45,9 +45,6 @@ private:
     IMessageQueue * m_queue;
     QuorumTracker* m_quorumTracker;
 
-    // container for tracking quorom for READ messages
-    std::map<int, struct QuoromDetail> m_quorumRead;
-
     // container for tracking quorom for DELETE messages
     std::map<int, struct QuoromDetail> m_quorum;
 
@@ -56,10 +53,8 @@ private:
 
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key);
     void sendMessageToReplicas(vector<Node> replicaNodes, MessageType msgType, string key, string value);
-    void updateQuorumRead(MessageType msgType, string key);
     void updateQuorum(MessageType msgType, string key);
     void checkQuoromTimeout();
-    void checkReadQuoromTimeout();
     bool isTimedout(QuoromDetail& quoromDetail);
 
     // Server side  API. The function does the following:
