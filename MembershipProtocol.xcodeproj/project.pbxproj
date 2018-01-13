@@ -13,6 +13,7 @@
 		5B10AC9C1E06190B002D411F /* KVStoreAlgorithm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B10AC931E06190B002D411F /* KVStoreAlgorithm.cpp */; };
 		5B10AC9D1E06190B002D411F /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B10AC951E06190B002D411F /* Node.cpp */; };
 		5B10AC9E1E06190B002D411F /* Trace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B10AC971E06190B002D411F /* Trace.cpp */; };
+		5B3D7871200A49C5002F9E8B /* QuorumTracker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B3D786F200A49C5002F9E8B /* QuorumTracker.cpp */; };
 		5B6CC4D520059AD600A37B1E /* Stabilizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B6CC4D320059AD600A37B1E /* Stabilizer.cpp */; };
 		5B8B0F571FCA333D005F97B9 /* IMessageQueue.h in Sources */ = {isa = PBXBuildFile; fileRef = 5B8B0F561FCA333D005F97B9 /* IMessageQueue.h */; };
 		5B8B0F5A1FCA3376005F97B9 /* RawMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B8B0F581FCA3376005F97B9 /* RawMessage.cpp */; };
@@ -54,6 +55,8 @@
 		5B10AC961E06190B002D411F /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		5B10AC971E06190B002D411F /* Trace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Trace.cpp; sourceTree = "<group>"; };
 		5B10AC981E06190B002D411F /* Trace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Trace.h; sourceTree = "<group>"; };
+		5B3D786F200A49C5002F9E8B /* QuorumTracker.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = QuorumTracker.cpp; sourceTree = "<group>"; };
+		5B3D7870200A49C5002F9E8B /* QuorumTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuorumTracker.h; sourceTree = "<group>"; };
 		5B6CC4D320059AD600A37B1E /* Stabilizer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Stabilizer.cpp; sourceTree = "<group>"; };
 		5B6CC4D420059AD600A37B1E /* Stabilizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Stabilizer.h; sourceTree = "<group>"; };
 		5B8B0F561FCA333D005F97B9 /* IMessageQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMessageQueue.h; sourceTree = "<group>"; };
@@ -141,6 +144,8 @@
 				5B91D2B91DF4D5DC005FFAF1 /* MembershipProtocol.h */,
 				5B6CC4D320059AD600A37B1E /* Stabilizer.cpp */,
 				5B6CC4D420059AD600A37B1E /* Stabilizer.h */,
+				5B3D786F200A49C5002F9E8B /* QuorumTracker.cpp */,
+				5B3D7870200A49C5002F9E8B /* QuorumTracker.h */,
 			);
 			name = Protocols;
 			sourceTree = "<group>";
@@ -254,6 +259,7 @@
 				5B91D2BE1DF4D5DC005FFAF1 /* Application.cpp in Sources */,
 				5B8B0F571FCA333D005F97B9 /* IMessageQueue.h in Sources */,
 				5B91D2C11DF4D5DC005FFAF1 /* Member.cpp in Sources */,
+				5B3D7871200A49C5002F9E8B /* QuorumTracker.cpp in Sources */,
 				5B10AC991E06190B002D411F /* Entry.cpp in Sources */,
 				5B91D2C31DF4D5DC005FFAF1 /* Params.cpp in Sources */,
 				5B9B70411FCBBF120096069B /* EM.cpp in Sources */,

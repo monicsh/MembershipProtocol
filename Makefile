@@ -11,8 +11,11 @@ CFLAGS =  -g -std=c++14
 
 all: Application
 
-Application: MembershipProtocol.o EmulNet.o Application.o Log.o Params.o Member.o MessageQueue.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o RawMessage.o Address.o MemberListEntry.o EM.o Stabilizer.o
+Application: MembershipProtocol.o EmulNet.o Application.o Log.o Params.o Member.o MessageQueue.o Trace.o KVStoreAlgorithm.o Node.o HashTable.o Entry.o Message.o RawMessage.o Address.o MemberListEntry.o EM.o Stabilizer.o QuorumTracker.o
 	g++ -o Application *.o ${CFLAGS}
+
+QuorumTracker.o: QuorumTracker.h QuorumTracker.cpp
+	g++ -c QuorumTracker.cpp ${CFLAGS}
 
 Stabilizer.o: Stabilizer.h Stabilizer.cpp
 	g++ -c Stabilizer.cpp ${CFLAGS}
