@@ -45,16 +45,16 @@ void QuorumTracker::removeExpiredQuorums()
         auto quoromDetail = record->second;
         auto expired = isQuorumExpired(quoromDetail);
 
-        if (!expired) {
-            ++record;           // next
-
-        } else {
-
+        if (expired) {
             this->m_logger->logReadFail(&(this->m_address), true, record->first, quoromDetail.reqKey);
 
             // remove failing qurom record
             record = this->m_quorum.erase(record);
+
+            continue;           // next
         }
+
+        ++record;           // check next
     }
 }
 
